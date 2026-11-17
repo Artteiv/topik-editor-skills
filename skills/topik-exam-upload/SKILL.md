@@ -79,18 +79,32 @@ Mỗi cờ ghi một dòng nhật ký: mã cờ, câu, kết quả, căn cứ.
 
 Sau bước 3, xem câu nào còn thiếu lời giải, bản dịch, bài mẫu Viết, chữ trong ảnh không chép được. Nếu còn thiếu thứ bạn tự viết được, **hỏi người dùng một lần**: bạn tự viết, hay họ chuẩn bị tài liệu. Họ đã trả lời trong yêu cầu thì làm theo, không hỏi lại. Nội dung tự viết không gắn nhãn gì. Chỉ ghi số câu và trường vào nhật ký mục "Tự quyết".
 
-## 8. Duyệt nhóm và kiểm cuối
+## 8. Phiếu chấm câu Viết 53, 54
+
+AI của web chấm bài Viết dựa vào phiếu chấm, nên phiếu phải sát đề. Mỗi câu một phiếu, gồm:
+- `subQuestions`: câu hỏi phụ đề bắt trả lời (`s1`, `s2`…);
+- `dataPoints`: dữ kiện phải nêu, ví dụ số liệu biểu đồ câu 53 (`d1`, `d2`…).
+
+Tối đa 10 mục mỗi danh sách, mỗi mục tối đa 500 ký tự.
+
+1. Chỉ xem trang của câu 53, 54 và trang lời giải, bài mẫu của hai câu đó. `topik text <exam> --area 쓰기` cho số trang và `question_id`.
+2. Câu hỏi phụ lấy từ đề bài in (gạch đầu dòng, câu hỏi con). Dữ kiện câu 53 lấy từ chữ trong biểu đồ: chép từ cùng nguồn với chữ trong ảnh ở bước 4, nhập cả hai. Đối chiếu bài mẫu trong sách giải để không sót ý. **Không thêm ý ngoài đề.**
+3. Người dùng báo không có sách giải thì bạn tự soạn phiếu từ đề bài.
+4. Ghi file `.upload/guide-53.json`, `.upload/guide-54.json` dạng `{"subQuestions": [{"id": "s1", "text": "…"}], "dataPoints": [{"id": "d1", "text": "…"}]}`, rồi `topik writing-guide <question_id> --body <file>`.
+5. Phiếu cần admin duyệt trước khi xuất bản. **Luôn** ghi vào mục "Cần người xem" của báo cáo: phiếu chấm câu 53, 54, lấy từ đâu (đề và sách giải, hay tự soạn).
+
+## 9. Duyệt nhóm và kiểm cuối
 
 1. Nhóm nào không còn cờ mở: `topik confirm <exam> <group>`. Lỗi trả về (`errors`) thì sửa rồi duyệt lại.
 2. `topik audio-marks <exam>`: đơn vị nào `status` "cần nghe" thì ghi vào báo cáo. Bạn không nghe được audio, đừng tự sửa mốc.
 3. `topik checklist <exam>`: mọi `error` phải hết. `warning` còn lại thì ghi vào báo cáo.
 
-## 9. Báo cáo cho người dùng
+## 10. Báo cáo cho người dùng
 
 Viết tiếng Việt, ngắn, theo thứ tự:
 
 1. Id và tên đề, trạng thái (bản nháp, chờ người xuất bản).
-2. **Còn thiếu hoặc cần người xem**: việc gì, câu nào, vì sao.
+2. **Còn thiếu hoặc cần người xem**: việc gì, câu nào, vì sao. Luôn có dòng phiếu chấm câu 53, 54.
 3. **Tự quyết**: liệt kê số câu theo từng loại (sửa chữ so với bản web, lỗi in đã sửa, cờ đã đóng, nội dung tự viết). Không kể lại nội dung.
 4. Đường dẫn `upload-log.md`.
 

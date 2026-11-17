@@ -26,6 +26,7 @@
 - Chữ trong ảnh tự chép: Nghe 1–3, Viết 53
 
 ## Cần người xem
+- Phiếu chấm Viết 53, 54: lấy từ đề in và sách giải (hoặc: tự soạn, không có sách giải), admin duyệt trước khi xuất bản
 - Đọc 42: bảng đáp án ghi ②, lời giải cùng sách chọn ①
 
 ## Lệnh đã ghi dữ liệu
