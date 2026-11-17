@@ -5,7 +5,7 @@ description: Use when asked to upload, import or put a TOPIK practice exam (đ�
 
 # Tải đề TOPIK lên web qua API
 
-Web tự đọc đề PDF bằng Gemini và tự đặt mốc audio. Bạn làm ba việc: đưa đủ file lên, **làm người đọc thứ hai độc lập** để bắt lỗi của Gemini, rồi xử lý cờ, duyệt nhóm cho tới khi chỉ còn bước xuất bản. **Xuất bản do người làm**: token API bị từ chối xuất bản, ẩn, xoá đề (`403 api_token_not_allowed`), đừng thử.
+Web tự đọc đề PDF bằng Gemini và tự đặt mốc audio. Bạn làm ba việc: đưa đủ file lên, kiểm những chỗ server không tự kiểm được (chữ trong ảnh, gạch chân), rồi xử lý cờ, duyệt nhóm cho tới khi chỉ còn bước xuất bản. **Không chép lại đề và không đọc cả đề**: việc đó tốn hàng triệu token mà vẫn sót lỗi. Chỉ mở trang mà một lệnh hay một cờ chỉ tới. **Xuất bản do người làm**: token API bị từ chối xuất bản, ẩn, xoá đề (`403 api_token_not_allowed`), đừng thử.
 
 Mọi lệnh dưới đây là `python3 <skill>/scripts/topik.py …` (gọi tắt `topik`), với `<skill>` là thư mục chứa file này. Chi tiết route và body: [reference/api.md](reference/api.md).
 
@@ -13,7 +13,7 @@ Mọi lệnh dưới đây là `python3 <skill>/scripts/topik.py …` (gọi t�
 
 1. Cần `TOPIK_API_URL`, `TOPIK_API_TOKEN` trong môi trường. Không in, không ghi token ra file.
 2. `topik whoami` phải ra `"role": "editor"`. Lỗi `401` thì dừng, báo người dùng token sai hoặc hết hạn.
-3. Mọi file bạn tạo để trong thư mục đề, ở thư mục con `.upload/` (ảnh trang, bản chép, JSON). Không để ở `/tmp`.
+3. Mọi file bạn tạo để trong thư mục đề, ở thư mục con `.upload/` (ảnh trang, JSON). Không để ở `/tmp`.
 4. `export TOPIK_UPLOAD_LOG=<thư mục đề>/upload-log.md`: script tự ghi mỗi lệnh ghi dữ liệu vào đó.
 
 ## 1. Kiểm tài nguyên trước khi tải
@@ -48,25 +48,16 @@ topik import <exam> --solution <id file đáp án>
 topik job <exam> --wait
 ```
 
-Sau mỗi `job`: `status` phải là `succeeded`. Mỗi lần đọc (`reads`) phải có `doneQuestions` bằng `expectedQuestions`. Lần đọc nào thiếu thì phần đó chỉ được đọc một lần: bước 4 càng phải kỹ ở đó, và ghi vào nhật ký. File đáp án đọc xong có `report` (số đáp án, lời thoại, lời giải đọc được, câu thiếu `missing`): ghi số liệu này vào nhật ký.
+Sau mỗi `job`: `status` phải là `succeeded`. Mỗi lần đọc (`reads`) phải có `doneQuestions` bằng `expectedQuestions`. Lần đọc nào thiếu thì ghi vào nhật ký và mục "Cần người xem" của báo cáo. File đáp án đọc xong có `report` (số đáp án, lời thoại, lời giải đọc được, câu thiếu `missing`): ghi số liệu này vào nhật ký.
 
-## 4. Chép mù rồi so: bước bắt lỗi chính
+## 4. Kiểm chữ trong ảnh và gạch chân
 
-Gemini đọc sai ở chỗ khó thấy: đổi đuôi câu, bỏ một từ, thiếu chữ trong ảnh, thiếu hoặc gạch chân nhầm câu. Hai lần đọc của nó có thể cùng sai, nên không có cờ. Cách bắt: bạn tự chép lại chữ của đề **mà không nhìn bản web đã đọc**, rồi để script so.
+`topik checks <exam>` liệt kê hai thứ, kèm số trang. Chỉ lưu và xem đúng các trang đó: `topik pages <id đề PDF> --first N --last N --out <đề>/.upload/pages`.
 
-1. Lưu ảnh trang: `topik pages <id đề PDF> --out <đề>/.upload/pages`.
-2. Chép từng khúc khoảng 5–8 trang, khúc nào xong ghi file khúc đó: `.upload/transcript-p<đầu>-<cuối>.json`, theo đúng định dạng [reference/transcript.md](reference/transcript.md). **Chưa chạy `topik text` hay `topik exam` trước khi chép xong cả đề**: thấy bản web rồi thì bản chép không còn độc lập.
-3. Gộp các khúc thành `.upload/transcript.json`, rồi chạy `topik diff <exam> .upload/transcript.json`.
-4. Với **từng** mục trong `items`: mở lại ảnh trang, phóng to đúng chỗ lệch, quyết định:
-   - Bản web sai → sửa bằng `topik save-group` (xem [reference/api.md](reference/api.md#sửa-nhóm)), ghi nhật ký.
-   - Bản chép của bạn sai → không làm gì.
-   - Sách in sai (chính tả, ký hiệu lặp): giữ đúng bản in, ghi nhật ký mục "Lỗi in".
-   - Chỉ khác chỗ đặt chữ (câu hỏi ở trường khác, lời dẫn lặp ở câu hỏi): sửa cho giống cách web xếp ở các nhóm cùng dạng.
-5. Chạy lại `diff` tới khi mọi mục còn lại đều là lỗi của bản chép hoặc lỗi in đã ghi.
+- **`pictures`**: từng ảnh của đề. Ảnh có chữ in (biểu đồ, áp phích, câu Viết 53) mà `has_text` là `false` thì chép chữ vào bằng `topik image-text`. Ảnh chỉ là tranh thì bỏ qua. Câu Viết có ảnh mà ảnh không có chữ thì máy không chấm được và đề không xuất bản được (`writing_ungradable`).
+- **`underlines`**: câu hỏi nhắc "밑줄" hoặc đã có `<u>`. So `underlined` với đoạn sách gạch: thiếu, thừa hay lệch thì sửa bằng `topik save-group`, ghi nhật ký. Câu nói "밑줄" mà danh sách rỗng thì server đã có cờ `missing_underline`: sửa ở đây rồi đóng cờ ở bước 6.
 
-Kiểm thêm những thứ cả hai bên hay cùng sót:
-- **Chữ trong ảnh**: ảnh phương án (Nghe 1–3), biểu đồ, áp phích, câu Viết 53. Ảnh nào có chữ mà `text` trống thì chép vào bằng `topik image-text`. Câu Viết có ảnh mà ảnh không có chữ thì máy không chấm được và đề không xuất bản được (`writing_ungradable`).
-- **Gạch chân**: mọi câu hỏi "밑줄 친 부분" phải có `<u>…</u>` đúng đoạn sách gạch.
+Chỗ sai chữ khác chỉ sửa khi gặp lúc đang xem trang vì một lý do trên, hoặc khi có cờ.
 
 ## 5. Đáp án
 
@@ -90,7 +81,7 @@ Sau bước 3, xem câu nào còn thiếu lời giải, bản dịch, bài mẫu
 
 ## 8. Duyệt nhóm và kiểm cuối
 
-1. Nhóm nào đã qua bước 4–6, không còn cờ mở: `topik confirm <exam> <group>`. Lỗi trả về (`errors`) thì sửa rồi duyệt lại.
+1. Nhóm nào không còn cờ mở: `topik confirm <exam> <group>`. Lỗi trả về (`errors`) thì sửa rồi duyệt lại.
 2. `topik audio-marks <exam>`: đơn vị nào `status` "cần nghe" thì ghi vào báo cáo. Bạn không nghe được audio, đừng tự sửa mốc.
 3. `topik checklist <exam>`: mọi `error` phải hết. `warning` còn lại thì ghi vào báo cáo.
 
@@ -115,9 +106,8 @@ Viết tiếng Việt, ngắn, theo thứ tự:
 
 | Ý nghĩ | Thực tế |
 |---|---|
-| "Gemini đọc hai lần rồi, không cờ là đúng" | Hai lần đọc có thể cùng sai, hoặc một lần bị cụt. Bước 4 là bắt buộc. |
-| "Xem bản web trước cho nhanh rồi sửa" | Thấy bản web rồi bạn sẽ đọc theo nó. Chép xong mới so. |
+| "Để chắc ăn, đọc lại cả đề so với trang" | Tốn hàng triệu token, model mạnh vẫn sai. Chỉ xem trang mà `checks` hay cờ chỉ tới. |
 | "Cờ này chắc ổn, đóng hết cho xong" | Mỗi cờ một căn cứ, ghi nhật ký. |
 | "Đáp án sách có vẻ sai, sửa luôn" | Ghi vào "Cần người xem", không tự sửa. |
 | "Chữ sai chính tả, sửa cho đúng" | Giữ bản in, ghi mục "Lỗi in". |
-| "Đề nhiều câu quá, kiểm phần Nghe là đủ" | Chép và so cả ba phần. |
+| "Lưu cả đề ra JSON rồi đọc hết" | Dùng `topik text --numbers` cho đúng câu cần xem. |

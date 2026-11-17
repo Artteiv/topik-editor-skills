@@ -1,6 +1,6 @@
 # topik-exam-upload
 
-Bộ skill để agent (Claude Code, Codex) tải một đề luyện thi TOPIK từ thư mục PDF và MP3 lên web luyện thi TOPIK qua API. Agent đưa đủ file lên, kiểm lại nội dung Gemini của web đã đọc bằng bản chép mù, xử lý cờ, duyệt nhóm. **Người xuất bản đề.**
+Bộ skill để agent (Claude Code, Codex) tải một đề luyện thi TOPIK từ thư mục PDF và MP3 lên web luyện thi TOPIK qua API. Agent đưa đủ file lên, kiểm chữ trong ảnh và gạch chân, xử lý cờ, duyệt nhóm. **Người xuất bản đề.**
 
 ## Cài
 
@@ -33,6 +33,6 @@ Nói với agent, ví dụ: "Tải đề trong thư mục `~/Đề/hot-topik-202
 ## Thư mục
 
 - `skills/topik-exam-upload/SKILL.md`: quy trình.
-- `skills/topik-exam-upload/reference/`: route API, định dạng bản chép mù, mẫu nhật ký.
+- `skills/topik-exam-upload/reference/`: route API, mẫu nhật ký.
 - `skills/topik-exam-upload/scripts/topik.py`: client dòng lệnh của API.
 - `tests/`: kịch bản thử skill với agent.

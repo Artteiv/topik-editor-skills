@@ -68,7 +68,7 @@ Gốc là `$TOPIK_API_URL`. Mọi route gửi `Authorization: Bearer $TOPIK_API_
 | Mã | Nghĩa | Cách xem |
 |---|---|---|
 | `run_mismatch` | Hai lần đọc khác nhau; `suggestion` là lần đọc 2 | So cả hai với ảnh trang |
-| `read_only_once` | Nhóm chỉ một lần đọc có | Bước chép mù phải kỹ ở nhóm này |
+| `read_only_once` | Nhóm chỉ một lần đọc có | Xem trang của nhóm, sửa nếu sai, rồi đóng cờ |
 | `field_conflict` | Lần nhập sau khác nội dung đang có | So với ảnh trang |
 | `missing_underline` | Câu hỏi về phần gạch chân mà chưa có `<u>` | Thêm đúng đoạn sách gạch |
 | `image_missing`, `image_box` | Thiếu ảnh hoặc khung ảnh lệch | Xem trang; khung ảnh sửa bằng `PATCH …/images/{mediaId}` `{box}` |

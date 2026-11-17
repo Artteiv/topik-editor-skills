@@ -14,7 +14,6 @@ go to stderr with the API's message, exit code 1.
 
 import argparse
 import datetime as dt
-import difflib
 import json
 import mimetypes
 import os
@@ -149,18 +148,6 @@ def norm(text: str | None) -> str:
     t = re.sub(r"^\s*※?\s*\[\d+\s*[~～∼]\s*\d+\]", "", t)
     t = re.sub(r"[①②③④]|<?보기>?|〈보기〉", "", t)
     return re.sub(r"[^\w㉠㉡㉢㉣()%~]", "", t)
-
-
-def underlined(text: str | None) -> list[str]:
-    return sorted(norm(s) for s in re.findall(r"<u>(.*?)</u>", text or "", re.S)
-                  if norm(s))
-
-
-def differences(a: str, b: str, context: int = 8) -> list[dict]:
-    sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
-    return [{"exam": a[max(0, i1 - context):i2 + context],
-             "transcript": b[max(0, j1 - context):j2 + context]}
-            for tag, i1, i2, j1, j2 in sm.get_opcodes() if tag != "equal"]
 
 
 # ---------------------------------------------------------------- commands
@@ -302,29 +289,42 @@ def cmd_text(a):
     out(rows)
 
 
-def cmd_diff(a):
-    exam = {(r["area"], r["number"]): r for r in exam_questions(load_exam(a.exam))}
-    got = json.loads(Path(a.transcript).read_text())["questions"]
-    report, seen = [], set()
-    for q in got:
-        key = (q["area"], q["number"])
-        seen.add(key)
-        r = exam.get(key)
-        if r is None:
-            report.append({"area": key[0], "number": key[1],
-                           "problem": "not in the exam"})
-            continue
-        diffs = differences(norm(r["text"]), norm(q["text"]))
-        ul_exam, ul_got = underlined(r["text"]), underlined(q["text"])
-        if diffs or ul_exam != ul_got:
-            item = {"area": key[0], "number": key[1],
-                    "question_id": r["question_id"], "group_id": r["group_id"],
-                    "pages": r["pages"], "differences": diffs}
-            if ul_exam != ul_got:
-                item["underline"] = {"exam": ul_exam, "transcript": ul_got}
-            report.append(item)
-    out({"compared": len(got), "with_difference": len(report),
-         "items": report})
+def media_rows(q: dict) -> list[tuple[str, dict]]:
+    g = q.get("group") or {}
+    rows = [("group.imageMedia", g.get("imageMedia")),
+            ("imageMedia", q.get("imageMedia"))]
+    for o in q.get("options") or []:
+        rows.append((f"options.{o['position']}", o.get("media")))
+    return [(field, m) for field, m in rows if m]
+
+
+def cmd_checks(a):
+    """What the server cannot check itself: text printed in pictures, and
+    the span of each underline. Only these pages need a look."""
+    exam = load_exam(a.exam)
+    pictures, underlines, seen = [], [], set()
+    for section in exam["sections"]:
+        for item in sorted(section["items"], key=lambda i: i["order"]):
+            q = item.get("question")
+            if not q:
+                continue
+            g = q.get("group") or {}
+            where = {"area": AREA[section["skill"]], "number": item["order"],
+                     "group_id": q.get("groupId"),
+                     "pages": [g.get("sourcePageFrom"), g.get("sourcePageTo")]}
+            for field, m in media_rows(q):
+                key = (q.get("groupId"), m.get("id"))
+                if key in seen:
+                    continue
+                seen.add(key)
+                pictures.append({**where, "field": field,
+                                 "media_id": m.get("id"),
+                                 "has_text": bool(m.get("text"))})
+            text = question_text(q)
+            if "밑줄" in text or "<u>" in text:
+                underlines.append({**where, "underlined": re.findall(
+                    r"<u>(.*?)</u>", text, re.S)})
+    out({"pictures": pictures, "underlines": underlines})
 
 
 def cmd_flags(a):
@@ -420,8 +420,7 @@ def main() -> None:
     add("text", cmd_text, "questions as text blocks (exam id or saved JSON)", E,
         (["--area"], {"choices": list(SKILL)}),
         (["--numbers"], {"help": "e.g. 1-20"}))
-    add("diff", cmd_diff, "compare a blind transcript with the exam", E,
-        (["transcript"], {}))
+    add("checks", cmd_checks, "pictures and underlines to check on the page", E)
     add("flags", cmd_flags, "open review flags", E)
     add("resolve", cmd_resolve, "resolve a flag", E, (["flag"], {}),
         (["resolution"], {"choices": ["applied", "kept", "dismissed"]}))
