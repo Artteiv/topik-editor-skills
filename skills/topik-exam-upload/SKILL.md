@@ -30,7 +30,7 @@ Lời thoại, lời giải, bài mẫu Viết thường nằm chung file đáp 
 
 ## 2. Mở nhật ký `upload-log.md`
 
-Tạo file ở thư mục đề, theo mẫu [reference/upload-log.md](reference/upload-log.md). Ghi ngay id đề khi có. Mỗi quyết định (sửa chữ, đóng cờ, giữ lỗi in, tự viết nội dung) ghi một dòng: câu nào, đổi gì, căn cứ (trang mấy). Người dùng đọc file này để biết bạn đã làm gì.
+Tạo file ở thư mục đề, theo mẫu [reference/upload-log.md](reference/upload-log.md). Ghi ngay id đề khi có. Mỗi quyết định (sửa chữ, đóng cờ, sửa lỗi in, tự viết nội dung) ghi một dòng: câu nào, đổi gì, căn cứ (trang mấy). Người dùng đọc file này để biết bạn đã làm gì.
 
 Chạy lại sau khi bị ngắt: đọc `upload-log.md` trước, dùng lại đề đã tạo (`topik find-exam`), đừng tạo đề mới.
 
@@ -91,7 +91,7 @@ Viết tiếng Việt, ngắn, theo thứ tự:
 
 1. Id và tên đề, trạng thái (bản nháp, chờ người xuất bản).
 2. **Còn thiếu hoặc cần người xem**: việc gì, câu nào, vì sao.
-3. **Tự quyết**: liệt kê số câu theo từng loại (sửa chữ so với bản web, lỗi in giữ nguyên, cờ đã đóng, nội dung tự viết). Không kể lại nội dung.
+3. **Tự quyết**: liệt kê số câu theo từng loại (sửa chữ so với bản web, lỗi in đã sửa, cờ đã đóng, nội dung tự viết). Không kể lại nội dung.
 4. Đường dẫn `upload-log.md`.
 
 ## Không làm
@@ -109,5 +109,5 @@ Viết tiếng Việt, ngắn, theo thứ tự:
 | "Để chắc ăn, đọc lại cả đề so với trang" | Tốn hàng triệu token, model mạnh vẫn sai. Chỉ xem trang mà `checks` hay cờ chỉ tới. |
 | "Cờ này chắc ổn, đóng hết cho xong" | Mỗi cờ một căn cứ, ghi nhật ký. |
 | "Đáp án sách có vẻ sai, sửa luôn" | Ghi vào "Cần người xem", không tự sửa. |
-| "Chữ sai chính tả, sửa cho đúng" | Giữ bản in, ghi mục "Lỗi in". |
+| "Sách in sai, chép y như sách cho trung thành" | Sửa cho đúng (chính tả, ký hiệu lặp, lời dẫn lệch), ghi mục "Lỗi in đã sửa". Đáp án thì không tự sửa. |
 | "Lưu cả đề ra JSON rồi đọc hết" | Dùng `topik text --numbers` cho đúng câu cần xem. |

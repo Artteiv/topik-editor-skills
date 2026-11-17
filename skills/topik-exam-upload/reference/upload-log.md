@@ -14,8 +14,8 @@
 - Đọc 19–20, đoạn văn: thêm một từ bị bỏ (trang 24)
 - Đọc 42, phương án ②: sửa một từ (trang 35)
 
-## Lỗi in giữ nguyên
-- Đọc 14, phương án ③ (trang 22)
+## Lỗi in đã sửa
+- Đọc 14, phương án ③: ký hiệu lặp (trang 22)
 
 ## Cờ đã đóng
 - run_mismatch, Nghe 30: kept, bản hiện tại khớp trang 9
