@@ -130,7 +130,7 @@ def exam_questions(exam: dict) -> list[dict]:
             g = q.get("group") or {}
             rows.append({
                 "area": AREA[section["skill"]],
-                "number": item["order"],
+                "number": q.get("sourceNumber") or item["order"],
                 "question_id": q["id"],
                 "group_id": q.get("groupId"),
                 "pages": [g.get("sourcePageFrom"), g.get("sourcePageTo")],
@@ -309,7 +309,7 @@ def cmd_checks(a):
             if not q:
                 continue
             g = q.get("group") or {}
-            where = {"area": AREA[section["skill"]], "number": item["order"],
+            where = {"area": AREA[section["skill"]], "number": q.get("sourceNumber") or item["order"],
                      "group_id": q.get("groupId"),
                      "pages": [g.get("sourcePageFrom"), g.get("sourcePageTo")]}
             for field, m in media_rows(q):
