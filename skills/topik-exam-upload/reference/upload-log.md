@@ -28,6 +28,7 @@
 ## Cần người xem
 - Phiếu chấm Viết 53, 54: lấy từ đề in và sách giải (hoặc: tự soạn, không có sách giải), admin duyệt trước khi xuất bản
 - Đọc 42: bảng đáp án ghi ②, lời giải cùng sách chọn ①
+- Chưa so được chữ với OCR (cờ `ocr_unavailable`): chạy lại nhập đề hoặc người xem
 
 ## Lệnh đã ghi dữ liệu
 ~~~

@@ -50,12 +50,20 @@ topik job <exam> --wait
 
 Sau mỗi `job`: `status` phải là `succeeded`. Mỗi lần đọc (`reads`) phải có `doneQuestions` bằng `expectedQuestions`. Lần đọc nào thiếu thì ghi vào nhật ký và mục "Cần người xem" của báo cáo. File đáp án đọc xong có `report` (số đáp án, lời thoại, lời giải đọc được, câu thiếu `missing`): ghi số liệu này vào nhật ký.
 
-## 4. Kiểm chữ trong ảnh và gạch chân
+## 4. Kiểm chữ trong ảnh, gạch chân và cờ OCR
 
-`topik checks <exam>` liệt kê hai thứ, kèm số trang. Chỉ lưu và xem đúng các trang đó: `topik pages <id đề PDF> --first N --last N --out <đề>/.upload/pages`.
+`topik checks <exam>` liệt kê ba thứ, kèm số trang. Chỉ lưu và xem đúng các trang đó: `topik pages <id đề PDF> --first N --last N --out <đề>/.upload/pages`.
 
 - **`pictures`**: từng ảnh của đề. Ảnh có chữ in (biểu đồ, áp phích, câu Viết 53) mà `has_text` là `false` thì chép chữ vào bằng `topik image-text`. Ảnh chỉ là tranh thì bỏ qua. Câu Viết có ảnh mà ảnh không có chữ thì máy không chấm được và đề không xuất bản được (`writing_ungradable`).
 - **`underlines`**: câu hỏi nhắc "밑줄" hoặc đã có `<u>`. So `underlined` với đoạn sách gạch: thiếu, thừa hay lệch thì sửa bằng `topik save-group`, ghi nhật ký. Câu nói "밑줄" mà danh sách rỗng thì server đã có cờ `missing_underline`: sửa ở đây rồi đóng cờ ở bước 6.
+
+- **`ocr`**: cờ của bước so chữ với OCR. Server đã so chữ đề với chữ in trên trang (Google Document AI, một bộ đọc chữ trên ảnh, không hiểu nghĩa nên không tự sửa chữ).
+  - **`ocr_mismatch`**: chữ đề khác chữ in ở một chỗ. Cắt đúng dòng đó bằng `topik crop <media_id> <page> <y0,x0,y1,x1> --out <đề>/.upload/crops/<flag>.png`, lấy `box` trong cờ, rồi xem ảnh cắt. Không mở cả trang khi đã có ảnh cắt.
+    - Đề đọc sai: sửa trường bằng `topik save-group` cho đúng chữ in. Lưu xong cờ tự đóng.
+    - OCR đọc sai, ảnh cho thấy đề đúng: đóng `kept`.
+    - Lỗi in của sách: sửa cho đúng theo quy tắc, rồi đóng `kept`. Ghi nhật ký là lỗi in.
+  - **`ocr_page_range`**: chữ của nhóm khớp trang bên cạnh hơn. Xem trang, sửa trang nguồn của nhóm nếu sai, rồi đóng cờ.
+  - **`ocr_unavailable`**: server chưa so được chữ, ví dụ Google lỗi. Ghi vào "Cần người xem", không tự đóng.
 
 Chỗ sai chữ khác chỉ sửa khi gặp lúc đang xem trang vì một lý do trên, hoặc khi có cờ.
 

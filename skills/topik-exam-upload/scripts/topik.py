@@ -18,6 +18,8 @@ import json
 import mimetypes
 import os
 import re
+import shutil
+import subprocess
 import sys
 import time
 import urllib.error
@@ -25,6 +27,8 @@ import urllib.request
 import uuid
 from pathlib import Path
 
+# Page share (of 1000) kept around a crop box: about one line above and below.
+CROP_PAD = 30
 AREA = {"listening": "듣기", "writing": "쓰기", "reading": "읽기"}
 SKILL = {v: k for k, v in AREA.items()}
 MARKS = "①②③④"
@@ -324,7 +328,58 @@ def cmd_checks(a):
             if "밑줄" in text or "<u>" in text:
                 underlines.append({**where, "underlined": re.findall(
                     r"<u>(.*?)</u>", text, re.S)})
-    out({"pictures": pictures, "underlines": underlines})
+    out({"pictures": pictures, "underlines": underlines,
+         "ocr": ocr_flags(a.exam, exam)})
+
+
+def ocr_flags(exam_id: str, exam: dict) -> list[dict]:
+    """Open flags of the OCR text check. ocr_mismatch: the exam text differs
+    from what the page prints; crop the page at `box` (topik crop) and look.
+    ocr_page_range: the group's pages look wrong. ocr_unavailable: the check
+    did not run (needs a person)."""
+    media = {}
+    for section in exam["sections"]:
+        for item in section["items"]:
+            q = item.get("question") or {}
+            g = q.get("group") or {}
+            media[q.get("id")] = media[q.get("groupId")] = g.get("sourceMediaId")
+    flags = data(request("GET", f"/v1/admin/exams/{exam_id}/flags"))
+    rows = []
+    for f in flags:
+        if not f["code"].startswith("ocr_"):
+            continue
+        s = f.get("suggestion") or {}
+        rows.append({"flag": f["id"], "code": f["code"], "number": f.get("number"),
+                     "field": f.get("field"), "page": s.get("page"),
+                     "exam": s.get("exam"), "ocr": s.get("ocr"), "box": s.get("box"),
+                     "media_id": media.get(f.get("questionId") or f.get("groupId")),
+                     "message": f["message"]})
+    return rows
+
+
+def cmd_crop(a):
+    """Cut a box out of a PDF page: box is y0,x0,y1,x1 on the page's 0-1000
+    scale (the box of an ocr_mismatch flag). Keeps one line above and below."""
+    if not shutil.which("sips"):
+        sys.exit("topik crop needs the macOS sips command; look at the whole page instead (topik pages)")
+    y0, x0, y1, x1 = (int(v) for v in a.box.split(","))
+    folder = Path(a.out).resolve().parent
+    folder.mkdir(parents=True, exist_ok=True)
+    page = folder / f".page-{a.media[:8]}-{a.page:02d}.png"
+    if not page.exists():
+        page.write_bytes(request("GET", f"/v1/media/{a.media}/pages/{a.page}", want_bytes=True))
+    size = subprocess.run(["sips", "-g", "pixelWidth", "-g", "pixelHeight", str(page)],
+                          check=True, capture_output=True, text=True).stdout
+    width = int(re.search(r"pixelWidth: (\d+)", size).group(1))
+    height = int(re.search(r"pixelHeight: (\d+)", size).group(1))
+    top = max(0, y0 - CROP_PAD) * height // 1000
+    bottom = min(1000, y1 + CROP_PAD) * height // 1000
+    left = max(0, x0 - CROP_PAD) * width // 1000
+    right = min(1000, x1 + CROP_PAD) * width // 1000
+    subprocess.run(["sips", "-c", str(bottom - top), str(right - left),
+                    "--cropOffset", str(top), str(left), str(page), "--out", a.out],
+                   check=True, capture_output=True)
+    out({"saved": a.out, "pixels": [right - left, bottom - top]})
 
 
 def cmd_flags(a):
@@ -420,7 +475,10 @@ def main() -> None:
     add("text", cmd_text, "questions as text blocks (exam id or saved JSON)", E,
         (["--area"], {"choices": list(SKILL)}),
         (["--numbers"], {"help": "e.g. 1-20"}))
-    add("checks", cmd_checks, "pictures and underlines to check on the page", E)
+    add("checks", cmd_checks, "pictures, underlines and OCR flags to check on the page", E)
+    add("crop", cmd_crop, "cut a box (y0,x0,y1,x1 on 0-1000) out of a PDF page",
+        (["media"], {}), (["page"], {"type": int}), (["box"], {"help": "y0,x0,y1,x1"}),
+        (["--out"], {"default": "crop.png"}))
     add("flags", cmd_flags, "open review flags", E)
     add("resolve", cmd_resolve, "resolve a flag", E, (["flag"], {}),
         (["resolution"], {"choices": ["applied", "kept", "dismissed"]}))
