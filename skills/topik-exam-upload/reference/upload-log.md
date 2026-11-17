@@ -1,0 +1,32 @@
+# Mẫu `upload-log.md`
+
+Đặt ở thư mục đề. Bạn viết các mục dưới đây. Script nối thêm dòng `` - <giờ> `METHOD path` → status `` mỗi lần ghi dữ liệu (khi đã đặt `TOPIK_UPLOAD_LOG`). Không chép nội dung đề vào đây.
+
+~~~markdown
+# Tải đề: HOT TOPIK ĐỎ 2020 – Đề 01
+
+- Đề: `<exam id>`, TOPIK II, bản nháp
+- File: exam.pdf → `<media id>`; listening.mp3 → `<media id>`; answers-transcripts.pdf → `<media id>`
+- Lần nhập đề: job `<id>`, đọc 1: 104/104, đọc 2: 104/104
+- Lần nhập đáp án: job `<id>`, đáp án 100, lời thoại 50, lời giải 104, thiếu: không
+
+## Sửa so với bản web đọc
+- Đọc 19–20, đoạn văn: thêm một từ bị bỏ (trang 24)
+- Đọc 42, phương án ②: sửa một từ (trang 35)
+
+## Lỗi in giữ nguyên
+- Đọc 14, phương án ③ (trang 22)
+
+## Cờ đã đóng
+- run_mismatch, Nghe 30: kept, bản hiện tại khớp trang 9
+- missing_underline, Đọc 42: kept, đã thêm gạch chân theo trang 35
+
+## Tự quyết
+- Lời giải tự viết: Đọc 3, 7, 12
+- Chữ trong ảnh tự chép: Nghe 1–3, Viết 53
+
+## Cần người xem
+- Đọc 42: bảng đáp án ghi ②, lời giải cùng sách chọn ①
+
+## Lệnh đã ghi dữ liệu
+~~~
