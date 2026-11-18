@@ -58,12 +58,14 @@ Sau mỗi `job`: `status` phải là `succeeded`. Mỗi lần đọc (`reads`) p
 - **`underlines`**: câu hỏi nhắc "밑줄" hoặc đã có `<u>`. So `underlined` với đoạn sách gạch: thiếu, thừa hay lệch thì sửa bằng `topik save-group`, ghi nhật ký. Câu nói "밑줄" mà danh sách rỗng thì server đã có cờ `missing_underline`: sửa ở đây rồi đóng cờ ở bước 6.
 
 - **`ocr`**: cờ của bước so chữ với OCR. Server đã so chữ đề với chữ in trên trang (Google Document AI, một bộ đọc chữ trên ảnh, không hiểu nghĩa nên không tự sửa chữ).
-  - **`ocr_mismatch`**: chữ đề khác chữ in ở một chỗ. Cắt đúng dòng đó bằng `topik crop <media_id> <page> <y0,x0,y1,x1> --out <đề>/.upload/crops/<flag>.png`, lấy `box` trong cờ, rồi xem ảnh cắt. Không mở cả trang khi đã có ảnh cắt.
-    - Đề đọc sai: sửa trường bằng `topik save-group` cho đúng chữ in. Lưu xong cờ tự đóng.
+  - **`ocr_mismatch`**: chữ đề (`exam`) khác chữ OCR (`ocr`) ở một chỗ. Cắt đúng dòng đó bằng `topik crop <media_id> <page> <y0,x0,y1,x1> --out <đề>/.upload/crops/<flag>.png`, lấy `box` trong cờ, rồi xem ảnh cắt. Không mở cả trang khi đã có ảnh cắt. Cờ không có `box` thì mới lưu và xem cả trang `page`.
+    - Đề đọc sai: sửa trường `field` bằng `topik save-group` cho đúng chữ in. Lưu xong, nếu chữ mới khớp OCR thì cờ tự đóng (`topik flags` không còn cờ đó). Cờ vẫn mở vì OCR cũng đọc sai một chữ khác trên dòng đó thì đóng `kept`.
     - OCR đọc sai, ảnh cho thấy đề đúng: đóng `kept`.
-    - Lỗi in của sách: sửa cho đúng theo quy tắc, rồi đóng `kept`. Ghi nhật ký là lỗi in.
-  - **`ocr_page_range`**: chữ của nhóm khớp trang bên cạnh hơn. Xem trang, sửa trang nguồn của nhóm nếu sai, rồi đóng cờ.
-  - **`ocr_unavailable`**: server chưa so được chữ, ví dụ Google lỗi. Ghi vào "Cần người xem", không tự đóng.
+    - Lỗi in của sách: sửa cho đúng theo quy tắc, rồi đóng `kept` (chữ đã sửa không bao giờ khớp OCR nên cờ không tự đóng). Ghi nhật ký là lỗi in.
+  - **`ocr_page_range`**: chữ của nhóm khớp trang khác (`message` ghi khoảng trang) hơn trang nguồn đang ghi. API không sửa được trang nguồn. Xem trang đang ghi và trang trong `message`:
+    - Chữ và ảnh của nhóm vẫn đúng với trang in: đóng `kept`, ghi vào "Cần người xem": nhóm câu mấy, trang nguồn ghi sai, trang đúng là bao nhiêu.
+    - Chỉ là nhiễu (nhóm đúng là ở trang đang ghi): đóng `dismissed`.
+  - **`ocr_unavailable`**: server chưa so được chữ, ví dụ Google lỗi. Không tự đóng, vì cờ này chặn xuất bản để người chạy lại nhập đề. Ghi vào "Cần người xem".
 
 Chỗ sai chữ khác chỉ sửa khi gặp lúc đang xem trang vì một lý do trên, hoặc khi có cờ.
 
@@ -73,7 +75,7 @@ Chỗ sai chữ khác chỉ sửa khi gặp lúc đang xem trang vì một lý d
 
 ## 6. Cờ
 
-`topik flags <exam>`. Xử lý **từng cờ một**, mỗi cờ có căn cứ từ ảnh trang hoặc trang đáp án. Không đóng cờ hàng loạt.
+`topik flags <exam>`. Cờ OCR đã xử lý ở bước 4. Các cờ còn lại xử lý **từng cờ một**, mỗi cờ có căn cứ từ ảnh trang hoặc trang đáp án. Không đóng cờ hàng loạt.
 
 | Kết quả | Khi nào |
 |---|---|
