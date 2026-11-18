@@ -408,8 +408,17 @@ def cmd_flags(a):
 
 
 def cmd_resolve(a):
+    flag = next((f for f in data(request("GET", f"/v1/admin/exams/{a.exam}/flags"))
+                 if f["id"] == a.flag), None)
     out(data(request("POST", f"/v1/admin/exams/{a.exam}/flags/{a.flag}/resolve",
                      {"resolution": a.resolution})))
+    # The reason goes to the upload log, one line per flag: the person
+    # reviewing the exam reads why each doubt was closed.
+    target = os.environ.get("TOPIK_UPLOAD_LOG")
+    if target and flag:
+        where = " ".join(str(v) for v in (flag.get("number"), flag.get("field")) if v)
+        with open(target, "a", encoding="utf-8") as f:
+            f.write(f"- cờ {flag['code']} {where or 'đề'}: {a.resolution}, {a.why}\n")
 
 
 def cmd_save_group(a):
@@ -501,7 +510,9 @@ def main() -> None:
         (["--out"], {"default": "crop.png"}))
     add("flags", cmd_flags, "open review flags", E)
     add("resolve", cmd_resolve, "resolve a flag", E, (["flag"], {}),
-        (["resolution"], {"choices": ["applied", "kept", "dismissed"]}))
+        (["resolution"], {"choices": ["applied", "kept", "dismissed"]}),
+        (["--why"], {"required": True,
+                     "help": "căn cứ, ví dụ 'ảnh cắt trang 9: OCR đọc sai'; không chép chữ đề"}))
     add("save-group", cmd_save_group, "PUT a group and its changed questions", E,
         (["group"], {}), (["body"], {"help": "JSON file"}))
     add("image-text", cmd_image_text, "set the text printed in a picture", E,
