@@ -85,6 +85,10 @@ Chỗ sai chữ khác chỉ sửa khi gặp lúc đang xem trang vì một lý d
 | `kept` | Giữ nội dung hiện tại, đã đối chiếu là đúng (hoặc đã tự sửa đúng bằng `save-group`) |
 | `dismissed` | Cờ không đúng sự thật (ví dụ báo thiếu gạch chân mà sách không gạch) |
 
+**`structure_changed`**: file chia nhóm khác khung đề (`message` ghi khoảng câu đọc được và khung). Xem trang in của các câu đó:
+- Sách chỉ in khác cách trình bày, câu và nội dung vẫn đúng nhóm của khung (ví dụ in lại lời dẫn trên từng câu): đóng `kept`, `--why` ghi trang và cách sách in.
+- Nhóm in thật sự khác khung (lời dẫn khác, câu thuộc nhóm khác): không đóng, ghi vào "Cần người xem": câu mấy, sách chia nhóm thế nào.
+
 Đóng cờ bằng `topik resolve <exam> <flag> <kết quả> --why "<căn cứ>"`, ví dụ `--why "ảnh cắt trang 9: OCR đọc sai"`. Script tự ghi mỗi cờ một dòng vào nhật ký. Căn cứ không chép chữ đề. Cờ tự đóng sau `save-group` thì ghi dòng sửa ở mục "Sửa so với bản web đọc".
 
 ## 7. Nội dung còn thiếu: hỏi trước khi tự viết
