@@ -56,7 +56,7 @@ Sau mỗi `job`: `status` phải là `succeeded`. Mỗi lần đọc (`reads`) p
 
 `topik checks <exam>` liệt kê ba thứ, kèm số trang. Chỉ lưu và xem đúng các trang đó: `topik pages <id đề PDF> --first N --last N --out <đề>/.upload/pages`.
 
-- **`pictures`**: từng ảnh của đề. Ảnh có chữ in (biểu đồ, áp phích, câu Viết 53) mà `has_text` là `false` thì chép chữ vào bằng `topik image-text`. Ảnh chỉ là tranh thì bỏ qua. Câu Viết có ảnh mà ảnh không có chữ thì máy không chấm được và đề không xuất bản được (`writing_ungradable`).
+- **`pictures`**: từng ảnh của đề. Ảnh có chữ in (biểu đồ, áp phích, câu Viết 53) mà `has_text` là `false` thì chép chữ vào bằng `topik image-text`. Ảnh chỉ là tranh thì bỏ qua. Chỉ chép chữ và số **có in** trong ảnh. Biểu đồ không in số thì không ước số theo độ dài thanh hay vạch; `text` đã có số mà ảnh không in thì xoá số đó (máy đọc tự bịa). Câu Viết có ảnh mà ảnh không có chữ thì máy không chấm được và đề không xuất bản được (`writing_ungradable`).
 - **`underlines`**: câu hỏi nhắc "밑줄" hoặc đã có `<u>`. So `underlined` với đoạn sách gạch: thiếu, thừa hay lệch thì sửa bằng `topik save-group`, ghi nhật ký. Câu nói "밑줄" mà danh sách rỗng thì server đã có cờ `missing_underline`: sửa ở đây rồi đóng cờ ở bước 6.
 
 - **`ocr`**: cờ của bước so chữ với OCR. Server đã so chữ đề với chữ in trên trang (Google Document AI, một bộ đọc chữ trên ảnh, không hiểu nghĩa nên không tự sửa chữ).
