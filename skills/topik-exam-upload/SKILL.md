@@ -7,6 +7,8 @@ description: Use when asked to upload, import or put a TOPIK practice exam (đ�
 
 Web tự đọc đề PDF bằng Gemini và tự đặt mốc audio. Bạn làm ba việc: đưa đủ file lên, kiểm những chỗ server không tự kiểm được (chữ trong ảnh, gạch chân), rồi xử lý cờ, duyệt nhóm cho tới khi chỉ còn bước xuất bản. **Không chép lại đề và không đọc cả đề**: việc đó tốn hàng triệu token mà vẫn sót lỗi. Chỉ mở trang mà một lệnh hay một cờ chỉ tới. **Xuất bản do người làm**: token API bị từ chối xuất bản, ẩn, xoá đề (`403 api_token_not_allowed`), đừng thử.
 
+**Xong khi** và chỉ khi: `topik flags` không còn cờ mở, mọi nhóm đã duyệt, `topik checklist` hết `error`. Cờ hay nhóm nào bạn không tự xử lý được (cần nghe audio, cần sửa trang nguồn, đáp án sách có vẻ sai) thì vẫn được để lại, nhưng mỗi cái phải có một dòng lý do trong mục "Cần người xem". Chưa đạt thì làm tiếp, đừng viết báo cáo. Đề 30 cờ là bình thường: mỗi cờ chỉ cần một ảnh cắt và một quyết định.
+
 Mọi lệnh dưới đây là `python3 <skill>/scripts/topik.py …` (gọi tắt `topik`), với `<skill>` là thư mục chứa file này. Chi tiết route và body: [reference/api.md](reference/api.md).
 
 ## 0. Chuẩn bị
@@ -58,7 +60,7 @@ Sau mỗi `job`: `status` phải là `succeeded`. Mỗi lần đọc (`reads`) p
 - **`underlines`**: câu hỏi nhắc "밑줄" hoặc đã có `<u>`. So `underlined` với đoạn sách gạch: thiếu, thừa hay lệch thì sửa bằng `topik save-group`, ghi nhật ký. Câu nói "밑줄" mà danh sách rỗng thì server đã có cờ `missing_underline`: sửa ở đây rồi đóng cờ ở bước 6.
 
 - **`ocr`**: cờ của bước so chữ với OCR. Server đã so chữ đề với chữ in trên trang (Google Document AI, một bộ đọc chữ trên ảnh, không hiểu nghĩa nên không tự sửa chữ).
-  - **`ocr_mismatch`**: chữ đề (`exam`) khác chữ OCR (`ocr`) ở một chỗ. Cắt đúng dòng đó bằng `topik crop <media_id> <page> <y0,x0,y1,x1> --out <đề>/.upload/crops/<flag>.png`, lấy `box` trong cờ, rồi xem ảnh cắt. Không mở cả trang khi đã có ảnh cắt. Cờ không có `box` thì mới lưu và xem cả trang `page`.
+  - **`ocr_mismatch`**: chữ đề (`exam`) khác chữ OCR (`ocr`) ở một chỗ. `topik crop-flags <exam> --out <đề>/.upload/crops` cắt dòng của mọi cờ trong một lệnh và in mỗi cờ kèm `image`. Xem lần lượt từng ảnh cắt, so với `exam` và `ocr`, quyết định, rồi sang cờ kế. Không mở cả trang khi đã có ảnh cắt. Cờ có `image` rỗng (không có khung) thì mới lưu và xem cả trang `page`.
     - Đề đọc sai: sửa trường `field` bằng `topik save-group` cho đúng chữ in. Lưu xong, nếu chữ mới khớp OCR thì cờ tự đóng (`topik flags` không còn cờ đó). Cờ vẫn mở vì OCR cũng đọc sai một chữ khác trên dòng đó thì đóng `kept`.
     - OCR đọc sai, ảnh cho thấy đề đúng: đóng `kept`.
     - Lỗi in của sách: sửa cho đúng theo quy tắc, rồi đóng `kept` (chữ đã sửa không bao giờ khớp OCR nên cờ không tự đóng). Ghi nhật ký là lỗi in.
@@ -111,6 +113,8 @@ Tối đa 10 mục mỗi danh sách, mỗi mục tối đa 500 ký tự.
 
 ## 10. Báo cáo cho người dùng
 
+Chỉ viết khi đã đạt điều kiện **Xong khi** ở đầu file. Chạy lại `topik flags` và `topik checklist` ngay trước khi viết để chắc.
+
 Viết tiếng Việt, ngắn, theo thứ tự:
 
 1. Id và tên đề, trạng thái (bản nháp, chờ người xuất bản).
@@ -134,4 +138,5 @@ Viết tiếng Việt, ngắn, theo thứ tự:
 | "Cờ này chắc ổn, đóng hết cho xong" | Mỗi cờ một căn cứ, ghi nhật ký. |
 | "Đáp án sách có vẻ sai, sửa luôn" | Ghi vào "Cần người xem", không tự sửa. |
 | "Sách in sai, chép y như sách cho trung thành" | Sửa cho đúng (chính tả, ký hiệu lặp, lời dẫn lệch), ghi mục "Lỗi in đã sửa". Đáp án thì không tự sửa. |
+| "Còn nhiều cờ quá, ghi 'cần kiểm tra' rồi báo cáo" | Chưa xong. Mỗi cờ: một ảnh cắt hay một trang, một quyết định. Chỉ để lại cờ có lý do bạn không tự xử lý được. |
 | "Lưu cả đề ra JSON rồi đọc hết" | Dùng `topik text --numbers` cho đúng câu cần xem. |

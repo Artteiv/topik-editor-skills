@@ -360,14 +360,32 @@ def ocr_flags(exam_id: str, exam: dict) -> list[dict]:
 def cmd_crop(a):
     """Cut a box out of a PDF page: box is y0,x0,y1,x1 on the page's 0-1000
     scale (the box of an ocr_mismatch flag). Keeps one line above and below."""
+    out(crop(a.media, a.page, [int(v) for v in a.box.split(",")], a.out))
+
+
+def cmd_crop_flags(a):
+    """Every open ocr_mismatch flag with a box, cut out in one go: one PNG
+    per flag in --out, named <area><number>-<flag id>.png."""
+    rows = []
+    for f in ocr_flags(a.exam, load_exam(a.exam)):
+        if f["code"] != "ocr_mismatch" or not f["box"] or not f["media_id"]:
+            rows.append({**f, "image": None})
+            continue
+        name = f"{f['number'] or 'group'}-{f['flag'][:8]}.png"
+        crop(f["media_id"], f["page"], f["box"], str(Path(a.out) / name))
+        rows.append({**f, "image": str(Path(a.out) / name)})
+    out(rows)
+
+
+def crop(media: str, page_no: int, box: list[int], target: str) -> dict:
     if not shutil.which("sips"):
         sys.exit("topik crop needs the macOS sips command; look at the whole page instead (topik pages)")
-    y0, x0, y1, x1 = (int(v) for v in a.box.split(","))
-    folder = Path(a.out).resolve().parent
+    y0, x0, y1, x1 = box
+    folder = Path(target).resolve().parent
     folder.mkdir(parents=True, exist_ok=True)
-    page = folder / f".page-{a.media[:8]}-{a.page:02d}.png"
+    page = folder / f".page-{media[:8]}-{page_no:02d}.png"
     if not page.exists():
-        page.write_bytes(request("GET", f"/v1/media/{a.media}/pages/{a.page}", want_bytes=True))
+        page.write_bytes(request("GET", f"/v1/media/{media}/pages/{page_no}", want_bytes=True))
     size = subprocess.run(["sips", "-g", "pixelWidth", "-g", "pixelHeight", str(page)],
                           check=True, capture_output=True, text=True).stdout
     width = int(re.search(r"pixelWidth: (\d+)", size).group(1))
@@ -377,9 +395,9 @@ def cmd_crop(a):
     left = max(0, x0 - CROP_PAD) * width // 1000
     right = min(1000, x1 + CROP_PAD) * width // 1000
     subprocess.run(["sips", "-c", str(bottom - top), str(right - left),
-                    "--cropOffset", str(top), str(left), str(page), "--out", a.out],
+                    "--cropOffset", str(top), str(left), str(page), "--out", target],
                    check=True, capture_output=True)
-    out({"saved": a.out, "pixels": [right - left, bottom - top]})
+    return {"saved": target, "pixels": [right - left, bottom - top]}
 
 
 def cmd_flags(a):
@@ -476,6 +494,8 @@ def main() -> None:
         (["--area"], {"choices": list(SKILL)}),
         (["--numbers"], {"help": "e.g. 1-20"}))
     add("checks", cmd_checks, "pictures, underlines and OCR flags to check on the page", E)
+    add("crop-flags", cmd_crop_flags, "cut the line of every open ocr_mismatch flag", E,
+        (["--out"], {"required": True, "help": "folder for the PNG files"}))
     add("crop", cmd_crop, "cut a box (y0,x0,y1,x1 on 0-1000) out of a PDF page",
         (["media"], {}), (["page"], {"type": int}), (["box"], {"help": "y0,x0,y1,x1"}),
         (["--out"], {"default": "crop.png"}))
