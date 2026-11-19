@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Cài skill topik-exam-upload trên macOS (hoặc Linux) và lưu TOPIK_API_URL, TOPIK_API_TOKEN
-# vào ~/.config/topik/agent.env (quyền 600), nạp từ ~/.zshrc nên còn sau khi khởi động lại.
+# vào ~/.config/topik/agent.env (quyền 600), nạp từ ~/.zshenv (mọi lần chạy zsh, kể cả agent chạy zsh -lc).
 # Chạy trong repo: bash install.sh [claude|codex|both]
 # Chạy từ GitHub: bash <(curl -fsSL https://raw.githubusercontent.com/Artteiv/topik-editor-skills/main/install.sh)
 set -euo pipefail
@@ -64,8 +64,8 @@ chmod 600 "$env_file"
 echo "Đã lưu TOPIK_API_URL và TOPIK_API_TOKEN vào $env_file"
 
 line='[ -f "$HOME/.config/topik/agent.env" ] && . "$HOME/.config/topik/agent.env"'
-for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
-  # .zshrc luôn được thêm (shell mặc định của macOS); .bashrc chỉ khi đã có sẵn.
+for rc in "$HOME/.zshenv" "$HOME/.bashrc"; do
+  # .zshenv luôn được thêm (zsh là shell mặc định của macOS; .zshrc không được đọc khi agent chạy lệnh); .bashrc chỉ khi đã có sẵn.
   [ "$rc" = "$HOME/.bashrc" ] && [ ! -f "$rc" ] && continue
   grep -qF "$line" "$rc" 2>/dev/null || { printf '\n# topik-exam-upload\n%s\n' "$line" >>"$rc"; echo "Đã thêm dòng nạp biến vào $rc"; }
 done

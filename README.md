@@ -18,7 +18,7 @@ Trong repo thì bấm đúp `install.cmd`. Script hỏi cài cho Claude Code, Co
 bash <(curl -fsSL https://raw.githubusercontent.com/Artteiv/topik-editor-skills/main/install.sh)
 ```
 
-Trong repo thì chạy `bash install.sh`. Script làm như bản Windows; biến lưu ở `~/.config/topik/agent.env` (quyền 600), nạp từ `~/.zshrc` (và `~/.bashrc` nếu có). Xong thì mở terminal mới.
+Trong repo thì chạy `bash install.sh`. Script làm như bản Windows; biến lưu ở `~/.config/topik/agent.env` (quyền 600), nạp từ `~/.zshenv` (và `~/.bashrc` nếu có). Xong thì mở terminal mới.
 
 **Cài tay:** chép thư mục skill vào nơi agent đọc skill:
 
