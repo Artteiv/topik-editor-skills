@@ -4,7 +4,13 @@ Bộ skill để agent (Claude Code, Codex) tải một đề luyện thi TOPIK 
 
 ## Cài
 
-**Windows:** bấm đúp `install.cmd`. Script hỏi cài cho Claude Code, Codex hay cả hai, chép skill, rồi hỏi địa chỉ API và token và lưu thành biến môi trường của tài khoản (còn sau khi khởi động lại). Chạy lại script để cập nhật skill hoặc đổi token. Xong thì mở lại terminal và ứng dụng agent.
+**Windows:** mở PowerShell, chạy một lệnh:
+
+```powershell
+iex ((irm https://raw.githubusercontent.com/Artteiv/topik-editor-skills/main/install.ps1) -replace '^\uFEFF')
+```
+
+Trong repo thì bấm đúp `install.cmd`. Script hỏi cài cho Claude Code, Codex hay cả hai, chép skill, rồi hỏi địa chỉ API và token và lưu thành biến môi trường của tài khoản (còn sau khi khởi động lại). Chạy lại script để cập nhật skill hoặc đổi token. Xong thì mở lại terminal và ứng dụng agent.
 
 **macOS, Linux:** chạy một lệnh, không cần tải repo:
 

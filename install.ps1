@@ -1,11 +1,21 @@
 ﻿# Cài skill topik-exam-upload trên Windows và lưu TOPIK_API_URL, TOPIK_API_TOKEN
 # vào biến môi trường của tài khoản người dùng (còn nguyên sau khi khởi động lại).
-# Chạy: bấm đúp install.cmd, hoặc: powershell -ExecutionPolicy Bypass -File install.ps1 [-Agent claude|codex|both]
+# Chạy từ GitHub (trong PowerShell): iex ((irm https://raw.githubusercontent.com/Artteiv/topik-editor-skills/main/install.ps1) -replace '^\uFEFF')
+# Chạy trong repo: bấm đúp install.cmd, hoặc: powershell -ExecutionPolicy Bypass -File install.ps1 [-Agent claude|codex|both]
 param([ValidateSet('claude', 'codex', 'both')][string]$Agent)
 $ErrorActionPreference = 'Stop'
 
-$skill = Join-Path $PSScriptRoot 'skills\topik-exam-upload'
-if (-not (Test-Path $skill)) { throw "Không thấy thư mục skill: $skill" }
+$skill = if ($PSScriptRoot) { Join-Path $PSScriptRoot 'skills\topik-exam-upload' } else { '' }
+if (-not $skill -or -not (Test-Path $skill)) {
+    # Chạy từ GitHub (lệnh iex ở trên): không có repo cạnh script, tải bản mới nhất của main.
+    $tmp = Join-Path ([IO.Path]::GetTempPath()) ("topik-skill-" + [guid]::NewGuid())
+    New-Item -ItemType Directory -Path $tmp | Out-Null
+    Write-Host 'Đang tải skill từ GitHub...'
+    Invoke-WebRequest -UseBasicParsing 'https://codeload.github.com/Artteiv/topik-editor-skills/zip/main' -OutFile "$tmp\repo.zip"
+    Expand-Archive "$tmp\repo.zip" $tmp
+    $skill = "$tmp\topik-editor-skills-main\skills\topik-exam-upload"
+    if (-not (Test-Path $skill)) { throw 'Tải về không thấy thư mục skill.' }
+}
 
 if (-not $Agent) {
     Write-Host 'Cài cho agent nào?'
