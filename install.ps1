@@ -55,8 +55,19 @@ if (-not $token) { throw 'Chưa có token.' }
 [Environment]::SetEnvironmentVariable('TOPIK_API_TOKEN', $token, 'User')
 Write-Host 'Đã lưu TOPIK_API_URL và TOPIK_API_TOKEN cho tài khoản này.'
 
-if (-not (Get-Command python3 -ErrorAction SilentlyContinue)) {
-    Write-Warning 'Không thấy lệnh python3. Skill gọi python3: cài Python 3.10+ (python.org hoặc Microsoft Store) rồi kiểm tra lại bằng: python3 --version'
+# Chạy thử thay vì Get-Command: Windows có sẵn python3.exe giả (mở Store) khi chưa cài Python.
+function Test-Python {
+    try { & python3 -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>$null; return $LASTEXITCODE -eq 0 } catch { return $false }
+}
+if (-not (Test-Python)) {
+    Write-Host 'Chưa có python3 bản 3.10 trở lên (skill cần lệnh này).'
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Write-Warning 'Không có winget. Cài Python 3.12 từ Microsoft Store (bản Store có lệnh python3), rồi chạy: python3 --version'
+    } elseif ((Read-Host 'Cài Python 3.12 từ Microsoft Store bằng winget? (Y/n)') -notmatch '^[nN]') {
+        # Bản Store có lệnh python3; bản python.org chỉ có python và py.
+        winget install --id 9NCVDN91XZQP -e --source msstore --accept-package-agreements --accept-source-agreements
+        if (Test-Python) { Write-Host 'Đã cài Python.' } else { Write-Warning 'Cài xong nhưng chưa gọi được python3. Mở terminal mới rồi chạy: python3 --version' }
+    }
 }
 
 Write-Host ''

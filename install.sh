@@ -70,7 +70,17 @@ for rc in "$HOME/.zshenv" "$HOME/.bashrc"; do
   grep -qF "$line" "$rc" 2>/dev/null || { printf '\n# topik-exam-upload\n%s\n' "$line" >>"$rc"; echo "Đã thêm dòng nạp biến vào $rc"; }
 done
 
-command -v python3 >/dev/null || echo "Cảnh báo: không thấy python3. Skill cần Python 3.10 trở lên." >&2
+py_ok() { python3 -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; }
+if ! py_ok; then
+  # python3 có sẵn của macOS là 3.9, skill cần 3.10 trở lên.
+  echo "Chưa có python3 bản 3.10 trở lên (skill cần lệnh này)."
+  if command -v brew >/dev/null; then
+    read -r -p "Cài Python bằng Homebrew? (Y/n): " ans
+    case $ans in [nN]*) ;; *) brew install python && hash -r ;; esac
+  fi
+  py_ok && echo "Đã có Python $(python3 -V)." ||
+    echo "Cảnh báo: chưa gọi được python3 bản 3.10+. Cài từ https://www.python.org/downloads/ rồi mở terminal mới, chạy: python3 --version" >&2
+fi
 
 echo
 echo "Xong. Mở terminal mới (hoặc chạy: . $env_file) và mở lại ứng dụng Claude/Codex để nhận biến."
