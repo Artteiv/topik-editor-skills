@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
 # Cài skill topik-exam-upload trên macOS (hoặc Linux) và lưu TOPIK_API_URL, TOPIK_API_TOKEN
 # vào ~/.config/topik/agent.env (quyền 600), nạp từ ~/.zshrc nên còn sau khi khởi động lại.
-# Chạy: bash install.sh [claude|codex|both]
+# Chạy trong repo: bash install.sh [claude|codex|both]
+# Chạy từ GitHub: bash <(curl -fsSL https://raw.githubusercontent.com/Artteiv/topik-editor-skills/main/install.sh)
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
 skill="$here/skills/topik-exam-upload"
-[ -d "$skill" ] || { echo "Không thấy thư mục skill: $skill" >&2; exit 1; }
+if [ ! -d "$skill" ]; then
+  # Chạy từ GitHub: không có repo cạnh script, tải bản mới nhất của main.
+  tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+  echo "Đang tải skill từ GitHub..."
+  curl -fsSL https://codeload.github.com/Artteiv/topik-editor-skills/tar.gz/main | tar -xz -C "$tmp"
+  skill="$tmp/topik-editor-skills-main/skills/topik-exam-upload"
+  [ -d "$skill" ] || { echo "Tải về không thấy thư mục skill." >&2; exit 1; }
+fi
 
 agent=${1:-}
 if [ -z "$agent" ]; then

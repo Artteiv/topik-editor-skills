@@ -6,7 +6,13 @@ Bộ skill để agent (Claude Code, Codex) tải một đề luyện thi TOPIK 
 
 **Windows:** bấm đúp `install.cmd`. Script hỏi cài cho Claude Code, Codex hay cả hai, chép skill, rồi hỏi địa chỉ API và token và lưu thành biến môi trường của tài khoản (còn sau khi khởi động lại). Chạy lại script để cập nhật skill hoặc đổi token. Xong thì mở lại terminal và ứng dụng agent.
 
-**macOS, Linux:** chạy `bash install.sh`. Script làm như bản Windows; biến lưu ở `~/.config/topik/agent.env` (quyền 600), nạp từ `~/.zshrc` (và `~/.bashrc` nếu có). Xong thì mở terminal mới.
+**macOS, Linux:** chạy một lệnh, không cần tải repo:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/Artteiv/topik-editor-skills/main/install.sh)
+```
+
+Trong repo thì chạy `bash install.sh`. Script làm như bản Windows; biến lưu ở `~/.config/topik/agent.env` (quyền 600), nạp từ `~/.zshrc` (và `~/.bashrc` nếu có). Xong thì mở terminal mới.
 
 **Cài tay:** chép thư mục skill vào nơi agent đọc skill:
 
