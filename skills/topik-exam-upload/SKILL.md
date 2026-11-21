@@ -7,7 +7,7 @@ description: Use when asked to upload, import or put a TOPIK practice exam (đ�
 
 Web tự đọc đề PDF bằng Gemini và tự đặt mốc audio. Bạn làm ba việc: đưa đủ file lên, kiểm những chỗ server không tự kiểm được (chữ trong ảnh, gạch chân), rồi xử lý cờ, duyệt nhóm cho tới khi chỉ còn bước xuất bản. **Không chép lại đề và không đọc cả đề**: việc đó tốn hàng triệu token mà vẫn sót lỗi. Chỉ mở trang mà một lệnh hay một cờ chỉ tới. **Xuất bản do người làm**: token API bị từ chối xuất bản, ẩn, xoá đề (`403 api_token_not_allowed`), đừng thử.
 
-**Xong khi** và chỉ khi: `topik flags` không còn cờ mở, mọi nhóm đã duyệt, `topik checklist` hết `error`. Cờ hay nhóm nào bạn không tự xử lý được (cần nghe audio, cần sửa trang nguồn, đáp án sách có vẻ sai) thì vẫn được để lại, nhưng mỗi cái phải có một dòng lý do trong mục "Cần người xem". Chưa đạt thì làm tiếp, đừng viết báo cáo. Đề 30 cờ là bình thường: mỗi cờ chỉ cần một ảnh cắt và một quyết định.
+**Xong khi** và chỉ khi: `topik flags` không còn cờ mở, mọi nhóm đã duyệt, `topik checklist` hết `error`, trừ `writing_guide_unreviewed` (người duyệt phiếu chấm). Cờ hay nhóm nào bạn không tự xử lý được (cần nghe audio, cần sửa trang nguồn, đáp án sách có vẻ sai) thì vẫn được để lại, nhưng mỗi cái phải có một dòng lý do trong mục "Cần người xem". Chưa đạt thì làm tiếp, đừng viết báo cáo. Đề 30 cờ là bình thường: mỗi cờ chỉ cần một ảnh cắt và một quyết định.
 
 Mọi lệnh dưới đây là `python3 <skill>/scripts/topik.py …` (gọi tắt `topik`), với `<skill>` là thư mục chứa file này. Chi tiết route và body: [reference/api.md](reference/api.md).
 
@@ -50,7 +50,7 @@ topik import <exam> --solution <id file đáp án>
 topik job <exam> --wait
 ```
 
-Sau mỗi `job`: `status` phải là `succeeded`. Mỗi lần đọc (`reads`) phải có `doneQuestions` bằng `expectedQuestions`. Lần đọc nào thiếu thì ghi vào nhật ký và mục "Cần người xem" của báo cáo. File đáp án đọc xong có `report` (số đáp án, lời thoại, lời giải đọc được, câu thiếu `missing`): ghi số liệu này vào nhật ký.
+Sau mỗi `job`: `status` phải là `succeeded`. Lần đọc 1 (`reads`, `readNo` 1) phải có `doneQuestions` bằng `expectedQuestions`. Lần đọc 2 không có hai số này (luôn `null`): chỉ cần `status` là `succeeded`. Lần đọc nào thiếu câu hay lỗi thì ghi vào nhật ký và mục "Cần người xem" của báo cáo. File đáp án đọc xong có `report` (số đáp án, lời thoại, lời giải đọc được, câu thiếu `missing`): ghi số liệu này vào nhật ký.
 
 ## 4. Kiểm chữ trong ảnh, gạch chân và cờ OCR
 
@@ -113,7 +113,7 @@ Tối đa 10 mục mỗi danh sách, mỗi mục tối đa 500 ký tự.
 
 1. Nhóm nào không còn cờ mở: `topik confirm <exam> <group>`. Lỗi trả về (`errors`) thì sửa rồi duyệt lại.
 2. `topik audio-marks <exam>`: đơn vị nào `status` "cần nghe" thì ghi vào báo cáo. Bạn không nghe được audio, đừng tự sửa mốc.
-3. `topik checklist <exam>`: mọi `error` phải hết. `warning` còn lại thì ghi vào báo cáo.
+3. `topik checklist <exam>`: mọi `error` phải hết, trừ `writing_guide_unreviewed`. `warning` còn lại thì ghi vào báo cáo.
 
 ## 10. Báo cáo cho người dùng
 

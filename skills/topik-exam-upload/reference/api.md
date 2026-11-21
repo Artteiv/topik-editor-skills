@@ -79,7 +79,9 @@ Gốc là `$TOPIK_API_URL`. Mọi route gửi `Authorization: Bearer $TOPIK_API_
 
 ## Mã checklist
 
-`error` chặn xuất bản: `open_flags`, `unconfirmed_group`, `import_running`, `missing_slot`, `empty_section`, `points_total`, `draft_question`, `writing_ungradable`, `read_two_missing`. `warning`: `group_missing_audio`, `audio_marks_missing`, `audio_marks_unreviewed`.
+`error` chặn xuất bản: `open_flags`, `unconfirmed_group`, `import_running`, `empty_section`, `points_total`, `draft_question`, `writing_ungradable`, `writing_guide_unreviewed`. `warning`: `read_two_missing`, `missing_slot`, `group_missing_audio`, `audio_marks_missing`, `audio_marks_unreviewed`.
+
+`writing_guide_unreviewed` (phiếu chấm 53, 54 chưa duyệt) luôn còn sau khi bạn xong: duyệt phiếu là việc của người, token bị từ chối.
 
 ## Giới hạn
 
