@@ -75,6 +75,11 @@ Gốc là `$TOPIK_API_URL`. Mọi route gửi `Authorization: Bearer $TOPIK_API_
 | `script_mismatch` | Lời thoại không khớp audio hay đề | Xem trang lời thoại |
 | `points_mismatch` | Điểm in khác điểm theo thể thức | Theo thể thức, ghi nhật ký |
 | `incomplete_group`, `unit_rejected`, `structure_changed` | Nhóm thiếu câu, không ghi được, đổi cấu trúc | Đọc `message`; không tự sửa được thì ghi "Cần người xem" |
+| `withheld_passage` | Đoạn văn trên đề bị thay bằng thông báo bản quyền | Xem trang. Đúng là bị thay: chỉ nhập đoạn gốc từ tài liệu người dùng đưa, rồi `kept`; không có thì không đóng, ghi "Cần người xem". Không tự viết, không chép theo trí nhớ. Trang vẫn in đoạn thật: sửa theo trang nếu cần, rồi `dismissed` |
+| `option_order` | Thứ tự tranh ①–④ có thể sai | So từng tranh với số in trên trang. Sai: `save-group` đủ 4 `options`, mỗi `mediaId` về đúng `position`, rồi `kept`. Đúng sẵn: `dismissed`. Không đổi `correctOption` theo tranh, đáp án theo số in |
+| `pattern_changed` | Loại câu khác đề trước cùng dạng | Xem trang, không lấy đề trước làm chuẩn. Loại hiện tại đúng: `kept`. Sai giữa `mcq`, `order`, `insert`: gửi `type` của câu bằng `save-group`, rồi `kept`. Sai loại khác: ghi "Cần người xem" |
+| `machine_suggestion` | Máy đề xuất một bản khác ở `suggestion` | So cả hai với ảnh trang. Không dùng `applied`. Đề xuất đúng: chép vào bằng `save-group`, cờ chưa tự đóng thì `kept`. Bản hiện tại đúng: `kept` |
+| `other` | Nghi ngờ không thuộc mã nào | Đọc `message`, xem trang. Đã sửa hoặc bản hiện tại đúng: `kept`. Cờ sai sự thật: `dismissed`. Không kiểm được: không đóng, ghi "Cần người xem" |
 | `model_note` | Ghi chú của mô hình đọc | Đọc, làm theo nếu đúng, rồi `dismissed` hoặc `kept` |
 
 ## Mã checklist
