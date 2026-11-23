@@ -7,7 +7,7 @@ description: Use when asked to upload, import or put a TOPIK practice exam (đ�
 
 Web tự đọc đề PDF bằng Gemini và tự đặt mốc audio. Bạn làm ba việc: đưa đủ file lên, kiểm những chỗ server không tự kiểm được (chữ trong ảnh, gạch chân), rồi xử lý cờ, duyệt nhóm cho tới khi chỉ còn bước xuất bản. **Không chép lại đề và không đọc cả đề**: việc đó tốn hàng triệu token mà vẫn sót lỗi. Chỉ mở trang mà một lệnh hay một cờ chỉ tới. **Xuất bản do người làm**: token API bị từ chối xuất bản, ẩn, xoá đề (`403 api_token_not_allowed`), đừng thử.
 
-**Xong khi** và chỉ khi: `topik flags` không còn cờ mở, mọi nhóm đã duyệt, `topik checklist` hết `error`, trừ `writing_guide_unreviewed` (người duyệt phiếu chấm). Cờ hay nhóm nào bạn không tự xử lý được (cần nghe audio, cần sửa trang nguồn, đáp án sách có vẻ sai) thì vẫn được để lại, nhưng mỗi cái phải có một dòng lý do trong mục "Cần người xem". Chưa đạt thì làm tiếp, đừng viết báo cáo. Đề 30 cờ là bình thường: mỗi cờ chỉ cần một ảnh cắt và một quyết định.
+**Xong khi** và chỉ khi: `topik flags` không còn cờ mở, mọi nhóm đã duyệt, `topik checklist` hết `error`, trừ `writing_guide_unreviewed` (người duyệt phiếu chấm). Cờ hay nhóm nào bạn không tự xử lý được (cần nghe audio, cần sửa trang nguồn, đáp án sách có vẻ sai) thì vẫn được để lại, nhưng mỗi cái phải có một dòng lý do trong mục "Cần người xem". `read_two_missing` và `missing_slot` cũng được để lại như vậy, nhưng chỉ sau khi đã đọc lại PDF đề một lần theo bước 3. Chưa đạt thì làm tiếp, đừng viết báo cáo. Đề 30 cờ là bình thường: mỗi cờ chỉ cần một ảnh cắt và một quyết định.
 
 Mọi lệnh dưới đây là `python3 <skill>/scripts/topik.py …` (gọi tắt `topik`), với `<skill>` là thư mục chứa file này. Chi tiết route và body: [reference/api.md](reference/api.md).
 
@@ -50,7 +50,16 @@ topik import <exam> --solution <id file đáp án>
 topik job <exam> --wait
 ```
 
-Sau mỗi `job`: `status` phải là `succeeded`. Lần đọc 1 (`reads`, `readNo` 1) phải có `doneQuestions` bằng `expectedQuestions`. Lần đọc 2 không có hai số này (luôn `null`): chỉ cần `status` là `succeeded`. Lần đọc nào thiếu câu hay lỗi thì ghi vào nhật ký và mục "Cần người xem" của báo cáo. File đáp án đọc xong có `report` (số đáp án, lời thoại, lời giải đọc được, câu thiếu `missing`): ghi số liệu này vào nhật ký.
+Sau mỗi `job`: `status` phải là `succeeded`. Lần đọc 1 (`reads`, `readNo` 1) phải có `doneQuestions` bằng `expectedQuestions`. Lần đọc 2 không có hai số này (luôn `null`): chỉ cần `status` là `succeeded`. File đáp án đọc xong có `report` (số đáp án, lời thoại, lời giải đọc được, câu thiếu `missing`): ghi số liệu này vào nhật ký.
+
+Job `succeeded` chưa đủ: xem từng lần đọc trong `reads`, rồi chạy `topik checklist <exam>`. **Đọc lại PDF đề một lần** khi job đầu xong mà có một trong các dấu hiệu sau. Làm ngay, trước khi gửi file đáp án và trước khi sửa gì:
+- `status` của job không phải `succeeded`;
+- lần đọc 2 có `status` khác `succeeded`, hoặc lần đọc 1 có `doneQuestions` nhỏ hơn `expectedQuestions`;
+- `topik checklist <exam>` có `read_two_missing` (hai lần đọc chưa được so) hoặc `missing_slot` (đề còn câu trống).
+
+Lệnh: `topik import <exam> --booklet <id đề PDF>` rồi `topik job <exam> --wait`. Gửi lại cùng media id là được, server đọc lại cả hai lần. Audio đã gắn giữ nguyên, server tự đặt lại mốc, không cần `set-audio` lại. Xong chạy lại `topik checklist`. Đọc lại không ghi đè chỗ đã sửa mà sinh cờ `field_conflict`, nên chỉ đọc lại trước khi sửa. Ghi cả hai job vào nhật ký.
+
+Đọc lại rồi mà vẫn còn dấu hiệu thì **không đọc lần thứ ba**. Ghi vào "Cần người xem": lần đọc nào lỗi và mã lỗi, câu trống số mấy, ở khoảng trang nào (câu trống không có trang: lấy trang của câu trước và sau nó, `topik text <exam> --numbers 36-38`). Rồi làm tiếp từ bước gửi file đáp án. Không tự tạo câu cho chỗ trống, không chép câu từ trang vào chỗ trống.
 
 ## 4. Kiểm chữ trong ảnh, gạch chân và cờ OCR
 
@@ -113,7 +122,7 @@ Tối đa 10 mục mỗi danh sách, mỗi mục tối đa 500 ký tự.
 
 1. Nhóm nào không còn cờ mở: `topik confirm <exam> <group>`. Lỗi trả về (`errors`) thì sửa rồi duyệt lại.
 2. `topik audio-marks <exam>`: đơn vị nào `status` "cần nghe" thì ghi vào báo cáo. Bạn không nghe được audio, đừng tự sửa mốc.
-3. `topik checklist <exam>`: mọi `error` phải hết, trừ `writing_guide_unreviewed`. `warning` còn lại thì ghi vào báo cáo.
+3. `topik checklist <exam>`: mọi `error` phải hết, trừ `writing_guide_unreviewed`, và trừ `read_two_missing`, `missing_slot` khi đã đọc lại theo bước 3 và đã ghi "Cần người xem". `warning` còn lại thì ghi vào báo cáo.
 
 ## 10. Báo cáo cho người dùng
 
@@ -121,7 +130,7 @@ Chỉ viết khi đã đạt điều kiện **Xong khi** ở đầu file. Chạy
 
 Viết tiếng Việt, ngắn, theo thứ tự:
 
-1. Id và tên đề, trạng thái (bản nháp, chờ người xuất bản).
+1. Id và tên đề, trạng thái: bản nháp, chờ người xuất bản. Còn `error` chặn xuất bản (`read_two_missing`, `missing_slot`) thì ghi "còn chặn xuất bản" và mã.
 2. **Còn thiếu hoặc cần người xem**: việc gì, câu nào, vì sao. Luôn có dòng phiếu chấm câu 53, 54.
 3. **Tự quyết**: liệt kê số câu theo từng loại (sửa chữ so với bản web, lỗi in đã sửa, cờ đã đóng, nội dung tự viết). Không kể lại nội dung.
 4. Đường dẫn `upload-log.md`.
@@ -133,6 +142,7 @@ Viết tiếng Việt, ngắn, theo thứ tự:
 - Không sửa nội dung khi chưa xem ảnh trang tương ứng.
 - Không đổi đáp án mà bảng đáp án in không nói vậy.
 - Không chép nội dung đề vào log hay báo cáo (có bản quyền). Ghi số câu, id.
+- Không xoá bảng từ (`glossary`), bản dịch theo câu (`sentenceTranslations`), bản dịch phương án (`optionTranslations`), bản dịch (`translation`): không gửi các trường này rỗng hay `null` trong `save-group`. Nghi là máy tự sinh, sách không in thì để nguyên, ghi "Cần người xem".
 
 ## Dấu hiệu đang làm sai
 
@@ -143,4 +153,6 @@ Viết tiếng Việt, ngắn, theo thứ tự:
 | "Đáp án sách có vẻ sai, sửa luôn" | Ghi vào "Cần người xem", không tự sửa. |
 | "Sách in sai, chép y như sách cho trung thành" | Sửa cho đúng (chính tả, ký hiệu lặp, lời dẫn lệch), ghi mục "Lỗi in đã sửa". Đáp án thì không tự sửa. |
 | "Còn nhiều cờ quá, ghi 'cần kiểm tra' rồi báo cáo" | Chưa xong. Mỗi cờ: một ảnh cắt hay một trang, một quyết định. Chỉ để lại cờ có lý do bạn không tự xử lý được. |
+| "Lần đọc 2 lỗi, ghi lại rồi làm tiếp" | Đọc lại PDF đề một lần theo bước 3 trước đã. |
+| "Bản dịch này sách không in, máy tự sinh, xoá đi" | Không xoá. Ghi "Cần người xem", người quyết. |
 | "Lưu cả đề ra JSON rồi đọc hết" | Dùng `topik text --numbers` cho đúng câu cần xem. |

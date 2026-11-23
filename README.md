@@ -31,6 +31,15 @@ cp -R skills/topik-exam-upload ~/.agents/skills/
 
 Cần Python 3.10 trở lên. Script chỉ dùng thư viện chuẩn.
 
+**Codex:** sandbox mặc định của Codex chặn mạng, nên lệnh gọi API bị chặn hoặc phải bấm duyệt từng lần. Để agent tự chạy tới khi xong, thêm vào `~/.codex/config.toml` (Windows: `%USERPROFILE%\.codex\config.toml`) rồi mở lại Codex:
+
+```toml
+[sandbox_workspace_write]
+network_access = true
+```
+
+Codex đọc skill ở `~/.agents/skills`. Kiểm đã nhận skill và biến: hỏi Codex "chạy `python3 ~/.agents/skills/topik-exam-upload/scripts/topik.py whoami`", phải ra `"role": "editor"`.
+
 ## Cấu hình
 
 Admin tạo token API cho tài khoản editor ở trang Token API của web admin, rồi người tải đề đặt:
