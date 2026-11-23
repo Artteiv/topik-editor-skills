@@ -53,7 +53,7 @@ Token không xuất bản, ẩn hay xoá được đề.
 
 ## Dùng
 
-Nói với agent, ví dụ: "Tải đề trong thư mục `~/Đề/hot-topik-2020/test-02` lên web, đây là HOT TOPIK đỏ 2020 Đề 02". Agent ghi mọi việc đã làm vào `upload-log.md` trong thư mục đề, rồi báo còn thiếu gì và đã tự quyết gì.
+Nói với agent, ví dụ: "Tải đề trong thư mục `~/Đề/hot-topik-2020/test-02` lên web, đây là HOT TOPIK đỏ 2020 Đề 02. Thiếu lời giải hay bản dịch thì tự viết. Tôi không trả lời được trong lúc bạn làm". Agent ghi mọi việc đã làm vào `upload-log.md` trong thư mục đề, rồi báo còn thiếu gì và đã tự quyết gì.
 
 ## Thư mục
 

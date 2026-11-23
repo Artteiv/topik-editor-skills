@@ -14,6 +14,8 @@ Run `python3 topik.py -h` for the commands. Output is JSON on stdout; errors
 go to stderr with the API's message, exit code 1.
 """
 
+from __future__ import annotations  # str | None on the Python 3.9 of macOS
+
 import argparse
 import datetime as dt
 import json
@@ -240,7 +242,7 @@ def cmd_import(a):
         if media:
             files.append({"role": role, "mediaId": media})
     if a.json:
-        files.append({"role": a.json_role, "result": json.loads(Path(a.json).read_text(encoding="utf-8")),
+        files.append({"role": a.json_role, "result": json.loads(Path(a.json).read_text(encoding="utf-8-sig")),
                       "formatVersion": a.format_version})
     if not files:
         sys.exit("give at least one file")
@@ -304,7 +306,8 @@ def cmd_pages(a):
     folder.mkdir(parents=True, exist_ok=True)
     saved = []
     for n in range(first, last + 1):
-        target = folder / f"page-{n:02d}.png"
+        # The media id keeps pages of the booklet and of the answer file apart.
+        target = folder / f"page-{a.media[:8]}-{n:02d}.png"
         if not target.exists():
             target.write_bytes(request("GET", f"/v1/media/{a.media}/pages/{n}",
                                        want_bytes=True))
@@ -468,14 +471,14 @@ def cmd_resolve(a):
 
 
 def cmd_save_group(a):
-    body = json.loads(Path(a.body).read_text(encoding="utf-8"))
+    body = json.loads(Path(a.body).read_text(encoding="utf-8-sig"))
     out(data(request("PUT", f"/v1/admin/exams/{a.exam}/groups/{a.group}", body)))
 
 
 def cmd_image_text(a):
     out(data(request("PATCH",
                      f"/v1/admin/exams/{a.exam}/groups/{a.group}/images/{a.media}",
-                     {"text": Path(a.text_file).read_text(encoding="utf-8").strip() or None})))
+                     {"text": Path(a.text_file).read_text(encoding="utf-8-sig").strip() or None})))
 
 
 def cmd_confirm(a):
@@ -497,13 +500,13 @@ def cmd_answers(a):
 def cmd_writing_guide(a):
     path = f"/v1/admin/questions/{a.question}/writing-guide"
     if a.body:
-        out(data(request("PUT", path, json.loads(Path(a.body).read_text(encoding="utf-8")))))
+        out(data(request("PUT", path, json.loads(Path(a.body).read_text(encoding="utf-8-sig")))))
     else:
         out(data(request("GET", path)))
 
 
 def cmd_call(a):
-    body = json.loads(Path(a.body).read_text(encoding="utf-8")) if a.body else None
+    body = json.loads(Path(a.body).read_text(encoding="utf-8-sig")) if a.body else None
     out(data(request(a.method.upper(), a.path, body)))
 
 

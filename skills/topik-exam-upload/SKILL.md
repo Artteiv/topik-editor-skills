@@ -9,7 +9,7 @@ Web tự đọc đề PDF bằng Gemini và tự đặt mốc audio. Bạn làm 
 
 **Xong khi** và chỉ khi (hoặc khi bước 3 bảo dừng hẳn): `topik flags` không còn cờ mở, mọi nhóm đã duyệt, `topik checklist` hết `error`, trừ `writing_guide_unreviewed` (người duyệt phiếu chấm). Cờ hay nhóm nào bạn không tự xử lý được (cần nghe audio, cần sửa trang nguồn, đáp án sách có vẻ sai) thì vẫn được để lại, nhưng mỗi cái phải có một dòng lý do trong mục "Cần người xem". `read_two_missing` và `missing_slot` cũng được để lại như vậy, nhưng chỉ sau khi đã đọc lại PDF đề một lần theo bước 3. Chưa đạt thì làm tiếp, đừng viết báo cáo. Đề 30 cờ là bình thường: mỗi cờ chỉ cần một ảnh cắt và một quyết định.
 
-Mọi lệnh dưới đây là `python3 <skill>/scripts/topik.py …` (gọi tắt `topik`), với `<skill>` là thư mục chứa file này. Chi tiết route và body: [reference/api.md](reference/api.md).
+Mọi lệnh dưới đây là `python3 <skill>/scripts/topik.py …` (gọi tắt `topik`), với `<skill>` là thư mục chứa file này. `upload` file lớn và `job --wait` chạy vài phút: đặt thời hạn lệnh ít nhất 15 phút. File JSON (body, phiếu chấm, chữ trong ảnh) tạo bằng công cụ ghi file của bạn, đừng tạo bằng shell (`echo`, `Set-Content`): trên Windows shell làm chữ Hàn thành `?`. Chi tiết route và body: [reference/api.md](reference/api.md).
 
 ## 0. Chuẩn bị
 
@@ -59,7 +59,7 @@ Job `succeeded` chưa đủ: xem từng lần đọc trong `reads`, rồi chạy
 
 Lệnh: `topik import <exam> --booklet <id đề PDF>` rồi `topik job <exam> --wait`. Gửi lại cùng media id là được, server đọc lại cả hai lần. Audio đã gắn giữ nguyên, server tự đặt lại mốc, không cần `set-audio` lại. Xong chạy lại `topik checklist`. Đọc lại không ghi đè chỗ đã sửa mà sinh cờ `field_conflict`, nên chỉ đọc lại trước khi sửa. Ghi cả hai job vào nhật ký.
 
-Đọc lại rồi mà vẫn còn dấu hiệu thì **không đọc lần thứ ba**. Ghi vào "Cần người xem": lần đọc nào lỗi và mã lỗi, câu trống số mấy, ở khoảng trang nào (câu trống không có trang: lấy trang của câu trước và sau nó, `topik text <exam> --numbers 36-38`). Rồi làm tiếp từ bước gửi file đáp án. Không tự tạo câu cho chỗ trống, không chép câu từ trang vào chỗ trống.
+Đọc lại rồi mà vẫn còn dấu hiệu thì **không đọc lần thứ ba**. Ghi vào "Cần người xem": lần đọc nào lỗi và mã lỗi, câu trống số mấy, ở khoảng trang nào (câu trống không có trang: lấy trang của câu trước và sau nó, `topik text <exam> --area 읽기 --numbers 36-38`). Rồi làm tiếp từ bước gửi file đáp án. Không tự tạo câu cho chỗ trống, không chép câu từ trang vào chỗ trống.
 
 Gửi file đáp án mà bị `409 booklet_required` (không lần đọc PDF đề nào thành công) thì **dừng hẳn**: không làm tiếp các bước sau, viết báo cáo ngay, ghi lý do và id các job vào "Cần người xem".
 
@@ -102,9 +102,9 @@ Chỗ sai chữ khác chỉ sửa khi gặp lúc đang xem trang vì một lý d
 
 Đóng cờ bằng `topik resolve <exam> <flag> <kết quả> --why "<căn cứ>"`, ví dụ `--why "ảnh cắt trang 9: OCR đọc sai"`. Script tự ghi mỗi cờ một dòng vào nhật ký. Căn cứ không chép chữ đề. Cờ tự đóng sau `save-group` thì ghi dòng sửa ở mục "Sửa so với bản web đọc".
 
-## 7. Nội dung còn thiếu: hỏi trước khi tự viết
+## 7. Nội dung còn thiếu: không hỏi giữa chừng
 
-Sau bước 3, xem câu nào còn thiếu lời giải, bản dịch, bài mẫu Viết, chữ trong ảnh không chép được. Nếu còn thiếu thứ bạn tự viết được, **hỏi người dùng một lần**: bạn tự viết, hay họ chuẩn bị tài liệu. Họ đã trả lời trong yêu cầu thì làm theo, không hỏi lại. Họ dặn không trả lời được trong lúc bạn làm, hay không trả lời: không tự viết, ghi số câu và trường còn thiếu vào "Cần người xem", làm tiếp. Nội dung tự viết không gắn nhãn gì. Chỉ ghi số câu và trường vào nhật ký mục "Tự quyết".
+Sau bước 3, xem câu nào còn thiếu lời giải, bản dịch, bài mẫu Viết, chữ trong ảnh không chép được. Yêu cầu của người dùng nói bạn được tự viết thì tự viết. Yêu cầu không nói gì thì **đừng hỏi giữa chừng** (hỏi là dừng việc): không tự viết, ghi số câu và trường còn thiếu vào "Cần người xem", làm tiếp, rồi hỏi trong báo cáo: bạn tự viết hay họ chuẩn bị tài liệu. Nội dung tự viết không gắn nhãn gì. Chỉ ghi số câu và trường vào nhật ký mục "Tự quyết".
 
 ## 8. Phiếu chấm câu Viết 53, 54
 
