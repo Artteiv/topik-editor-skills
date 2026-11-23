@@ -7,7 +7,8 @@
 
 - Đề: `<exam id>`, TOPIK II, bản nháp
 - File: exam.pdf → `<media id>`; listening.mp3 → `<media id>`; answers-transcripts.pdf → `<media id>`
-- Lần nhập đề: job `<id>`, đọc 1: 104/104, đọc 2: 104/104
+- Lần nhập đề: job `<id>`, đọc 1: 104/104, đọc 2: lỗi `gemini_http_503`
+- Đọc lại đề: job `<id>`, đọc 1: 104/104, đọc 2: thành công
 - Lần nhập đáp án: job `<id>`, đáp án 100, lời thoại 50, lời giải 104, thiếu: không
 
 ## Sửa so với bản web đọc
@@ -28,6 +29,8 @@
 ## Cần người xem
 - Phiếu chấm Viết 53, 54: lấy từ đề in và sách giải (hoặc: tự soạn, không có sách giải), admin duyệt trước khi xuất bản
 - Đọc 42: bảng đáp án ghi ②, lời giải cùng sách chọn ①
+- Lần đọc 2 lỗi cả hai job (`<id>`, `<id>`), mã `<lỗi>`: hai lần đọc chưa được so, chặn xuất bản. Cần chạy lại nhập đề
+- Đọc 37 vẫn trống sau khi đọc lại (trang 30): cần người nhập câu
 - Chưa so được chữ với OCR (cờ `ocr_unavailable`): chạy lại nhập đề hoặc người xem
 
 ## Lệnh đã ghi dữ liệu

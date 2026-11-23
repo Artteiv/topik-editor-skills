@@ -55,8 +55,9 @@ Gốc là `$TOPIK_API_URL`. Mọi route gửi `Authorization: Bearer $TOPIK_API_
 }
 ```
 
-- Trường của nhóm: `instruction`, `example` (〈보기〉), `passageText`, `transcript`, `translation`, `imageMediaId`, `patternKey`.
-- Trường của câu: `prompt`, `passageText`, `givenSentence`, `labeledItems` (4 mục), `options` (đủ 4, phương án ảnh giữ `mediaId` cũ), `correctOption` (1–4), `acceptedAnswers`, `modelAnswer`, `charMin`, `charMax`, `explanation`, `translation`, `transcript`.
+- Trường của nhóm: `instruction`, `example` (〈보기〉), `passageText`, `transcript`, `translation`, `sentenceTranslations`, `glossary`, `imageMediaId`, `patternKey`.
+- Trường của câu: `prompt`, `passageText`, `givenSentence`, `labeledItems` (4 mục), `options` (đủ 4, phương án ảnh giữ `mediaId` cũ), `correctOption` (1–4), `acceptedAnswers`, `modelAnswer`, `charMin`, `charMax`, `explanation`, `translation`, `sentenceTranslations`, `optionTranslations`, `glossary`, `transcript`.
+- Không gửi trường bản dịch hay bảng từ thì giữ nguyên. Gửi rỗng hoặc `null` là xoá: đừng làm (xem `SKILL.md`, mục Không làm).
 - Gạch chân viết `<u>…</u>`. Chỗ trống viết `(   )`.
 - `409 question_has_answers`: đề đã có người làm. Chỉ gặp ở đề đã xuất bản: dừng, báo người dùng.
 - Kết quả trả `questions[].errors`: lý do câu chưa duyệt được.
@@ -84,7 +85,9 @@ Gốc là `$TOPIK_API_URL`. Mọi route gửi `Authorization: Bearer $TOPIK_API_
 
 ## Mã checklist
 
-`error` chặn xuất bản: `open_flags`, `unconfirmed_group`, `import_running`, `empty_section`, `points_total`, `draft_question`, `writing_ungradable`, `writing_guide_unreviewed`. `warning`: `read_two_missing`, `missing_slot`, `group_missing_audio`, `audio_marks_missing`, `audio_marks_unreviewed`.
+`error` chặn xuất bản: `open_flags`, `unconfirmed_group`, `import_running`, `read_two_missing`, `empty_section`, `missing_slot`, `points_total`, `draft_question`, `writing_ungradable`, `writing_guide_unreviewed`. `warning`: `group_missing_audio`, `audio_marks_missing`, `audio_marks_unreviewed`.
+
+`read_two_missing` (hai lần đọc PDF đề chưa được so) và `missing_slot` (đề còn câu trống): đọc lại PDF đề một lần theo bước 3 của `SKILL.md`. Vẫn còn thì ghi "Cần người xem", không tự tạo câu.
 
 `writing_guide_unreviewed` (phiếu chấm 53, 54 chưa duyệt) luôn còn sau khi bạn xong: duyệt phiếu là việc của người, token bị từ chối.
 

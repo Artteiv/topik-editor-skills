@@ -288,7 +288,8 @@ def cmd_text(a):
     if a.area:
         rows = [r for r in rows if r["area"] == a.area]
     if a.numbers:
-        lo, hi = map(int, a.numbers.split("-"))
+        lo, _, hi = a.numbers.partition("-")  # "37" or "36-38"
+        lo, hi = int(lo), int(hi or lo)
         rows = [r for r in rows if lo <= r["number"] <= hi]
     out(rows)
 
@@ -501,7 +502,7 @@ def main() -> None:
         (["--out"], {"default": "exam.json"}))
     add("text", cmd_text, "questions as text blocks (exam id or saved JSON)", E,
         (["--area"], {"choices": list(SKILL)}),
-        (["--numbers"], {"help": "e.g. 1-20"}))
+        (["--numbers"], {"help": "e.g. 37 or 1-20"}))
     add("checks", cmd_checks, "pictures, underlines and OCR flags to check on the page", E)
     add("crop-flags", cmd_crop_flags, "cut the line of every open ocr_mismatch flag", E,
         (["--out"], {"required": True, "help": "folder for the PNG files"}))
