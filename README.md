@@ -38,7 +38,7 @@ Cần Python 3.10 trở lên. Script chỉ dùng thư viện chuẩn.
 network_access = true
 ```
 
-Codex đọc skill ở `~/.agents/skills`. Kiểm đã nhận skill và biến: hỏi Codex "chạy `python3 ~/.agents/skills/topik-exam-upload/scripts/topik.py whoami`", phải ra `"role": "editor"`.
+Sandbox của Codex chỉ cho ghi file trong thư mục đang làm việc, nên **mở Codex ở thư mục đề** (ảnh trang, `upload-log.md` nằm ở đó). Codex đọc skill ở `~/.agents/skills`. Lệnh của skill tự đọc `~/.config/topik/agent.env` nếu Codex không nạp biến môi trường. Kiểm đã nhận skill và biến: hỏi Codex "chạy `python3 ~/.agents/skills/topik-exam-upload/scripts/topik.py whoami`", phải ra `"role": "editor"`.
 
 ## Cấu hình
 

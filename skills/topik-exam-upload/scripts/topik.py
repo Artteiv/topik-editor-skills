@@ -2,10 +2,12 @@
 """Command-line client of the TOPIK exam API for the topik-exam-upload skill.
 
 Python 3.10+, standard library only. Reads TOPIK_API_URL and TOPIK_API_TOKEN
-from the environment; never prints the token.
+from the environment, or from ~/.config/topik/agent.env (written by the
+installer) when the agent's shell did not load it; never prints the token.
 
-Every call that writes (POST, PUT, PATCH, DELETE) is appended to the file in
-TOPIK_UPLOAD_LOG (method, path, status, no body), so the exam folder keeps a
+Every call that writes (POST, PUT, PATCH, DELETE) is appended to the upload
+log (method, path, status, no body): the file in TOPIK_UPLOAD_LOG, else
+upload-log.md in the current folder when it exists. The exam folder keeps a
 trace of what the agent did even when the agent forgets to write it down.
 
 Run `python3 topik.py -h` for the commands. Output is JSON on stdout; errors
@@ -36,7 +38,37 @@ MARKS = "①②③④"
 
 # ---------------------------------------------------------------- HTTP
 
+ENV_FILE = Path.home() / ".config" / "topik" / "agent.env"
+
+
+def load_env_file() -> None:
+    """Fill TOPIK_* variables missing from the environment from ENV_FILE.
+
+    The installer writes `export NAME='value'` lines there; agent apps that
+    start commands without the user's shell profile never see them otherwise.
+    """
+    if not ENV_FILE.is_file():
+        return
+    for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
+        m = re.fullmatch(r"\s*(?:export\s+)?(TOPIK_\w+)=(['\"]?)(.*)\2\s*", line)
+        if m and not os.environ.get(m[1]):
+            os.environ[m[1]] = m[3]
+
+
+def log_target() -> str | None:
+    """The upload log: TOPIK_UPLOAD_LOG, else ./upload-log.md when it exists.
+
+    Each agent command runs in a fresh shell, so an exported variable is lost;
+    running the commands from the exam folder is enough.
+    """
+    target = os.environ.get("TOPIK_UPLOAD_LOG")
+    if target:
+        return target
+    return "upload-log.md" if Path("upload-log.md").is_file() else None
+
+
 def base() -> str:
+    load_env_file()
     url = os.environ.get("TOPIK_API_URL", "").rstrip("/")
     if not url or not os.environ.get("TOPIK_API_TOKEN"):
         sys.exit("TOPIK_API_URL and TOPIK_API_TOKEN must be set")
@@ -44,7 +76,7 @@ def base() -> str:
 
 
 def log_write(method: str, path: str, status) -> None:
-    target = os.environ.get("TOPIK_UPLOAD_LOG")
+    target = log_target()
     if not target or method == "GET":
         return
     stamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -82,7 +114,9 @@ def request(method: str, path: str, body=None, raw: bytes | None = None,
                 print(f"429, waiting {wait}s", file=sys.stderr)
                 time.sleep(wait)
                 continue
-            if e.code >= 500 and attempt < 2:
+            # A write may have happened before a 5xx: sending it again could
+            # create a second exam or import, so only reads are retried.
+            if e.code >= 500 and method == "GET" and attempt < 2:
                 time.sleep(5)
                 continue
             log_write(method, path, e.code)
@@ -90,7 +124,7 @@ def request(method: str, path: str, body=None, raw: bytes | None = None,
                   file=sys.stderr)
             sys.exit(1)
         except urllib.error.URLError as e:
-            if attempt < 2:
+            if method == "GET" and attempt < 2:
                 time.sleep(5)
                 continue
             sys.exit(f"{method} {path}: {e.reason}")
@@ -124,6 +158,17 @@ def question_text(q: dict) -> str:
     return "\n".join(p for p in parts if p)
 
 
+# First printed number of the sections that do not start at 1 (firstNumber in
+# the API's src/config/topik.ts).
+FIRST_NUMBER = {("topik_1", "reading"): 31, ("topik_2", "writing"): 51}
+
+
+def slot_number(exam: dict, section: dict, item: dict) -> int:
+    """Printed number of a slot, from its order in the section."""
+    first = FIRST_NUMBER.get((exam.get("type"), section["skill"]), 1)
+    return first + item["order"] - 1
+
+
 def exam_questions(exam: dict) -> list[dict]:
     rows = []
     for section in exam["sections"]:
@@ -134,7 +179,7 @@ def exam_questions(exam: dict) -> list[dict]:
             g = q.get("group") or {}
             rows.append({
                 "area": AREA[section["skill"]],
-                "number": q.get("sourceNumber") or item["order"],
+                "number": q.get("sourceNumber") or slot_number(exam, section, item),
                 "question_id": q["id"],
                 "group_id": q.get("groupId"),
                 "pages": [g.get("sourcePageFrom"), g.get("sourcePageTo")],
@@ -195,7 +240,7 @@ def cmd_import(a):
         if media:
             files.append({"role": role, "mediaId": media})
     if a.json:
-        files.append({"role": a.json_role, "result": json.load(open(a.json)),
+        files.append({"role": a.json_role, "result": json.loads(Path(a.json).read_text(encoding="utf-8")),
                       "formatVersion": a.format_version})
     if not files:
         sys.exit("give at least one file")
@@ -269,7 +314,7 @@ def cmd_pages(a):
 
 def cmd_exam(a):
     e = data(request("GET", f"/v1/admin/exams/{a.exam}"))
-    Path(a.out).write_text(json.dumps(e, ensure_ascii=False, indent=1))
+    Path(a.out).write_text(json.dumps(e, ensure_ascii=False, indent=1), encoding="utf-8")
     out({"saved": a.out, "title": e["title"], "status": e["status"],
          "sections": [{"skill": s["skill"], "id": s["id"],
                        "questions": len(s["items"]),
@@ -279,7 +324,7 @@ def cmd_exam(a):
 
 def load_exam(source: str) -> dict:
     if Path(source).exists():
-        return data(json.loads(Path(source).read_text()))
+        return data(json.loads(Path(source).read_text(encoding="utf-8")))
     return data(request("GET", f"/v1/admin/exams/{source}"))
 
 
@@ -314,7 +359,7 @@ def cmd_checks(a):
             if not q:
                 continue
             g = q.get("group") or {}
-            where = {"area": AREA[section["skill"]], "number": q.get("sourceNumber") or item["order"],
+            where = {"area": AREA[section["skill"]], "number": q.get("sourceNumber") or slot_number(exam, section, item),
                      "group_id": q.get("groupId"),
                      "pages": [g.get("sourcePageFrom"), g.get("sourcePageTo")]}
             for field, m in media_rows(q):
@@ -415,7 +460,7 @@ def cmd_resolve(a):
                      {"resolution": a.resolution})))
     # The reason goes to the upload log, one line per flag: the person
     # reviewing the exam reads why each doubt was closed.
-    target = os.environ.get("TOPIK_UPLOAD_LOG")
+    target = log_target()
     if target and flag:
         where = " ".join(str(v) for v in (flag.get("number"), flag.get("field")) if v)
         with open(target, "a", encoding="utf-8") as f:
@@ -423,14 +468,14 @@ def cmd_resolve(a):
 
 
 def cmd_save_group(a):
-    body = json.loads(Path(a.body).read_text())
+    body = json.loads(Path(a.body).read_text(encoding="utf-8"))
     out(data(request("PUT", f"/v1/admin/exams/{a.exam}/groups/{a.group}", body)))
 
 
 def cmd_image_text(a):
     out(data(request("PATCH",
                      f"/v1/admin/exams/{a.exam}/groups/{a.group}/images/{a.media}",
-                     {"text": Path(a.text_file).read_text().strip() or None})))
+                     {"text": Path(a.text_file).read_text(encoding="utf-8").strip() or None})))
 
 
 def cmd_confirm(a):
@@ -444,7 +489,7 @@ def cmd_checklist(a):
 
 def cmd_answers(a):
     e = load_exam(a.exam)
-    out({s["skill"]: {str(i["order"]): (i.get("question") or {}).get("correctOption")
+    out({s["skill"]: {str(slot_number(e, s, i)): (i.get("question") or {}).get("correctOption")
                       for i in sorted(s["items"], key=lambda i: i["order"])}
          for s in e["sections"]})
 
@@ -452,13 +497,13 @@ def cmd_answers(a):
 def cmd_writing_guide(a):
     path = f"/v1/admin/questions/{a.question}/writing-guide"
     if a.body:
-        out(data(request("PUT", path, json.loads(Path(a.body).read_text()))))
+        out(data(request("PUT", path, json.loads(Path(a.body).read_text(encoding="utf-8")))))
     else:
         out(data(request("GET", path)))
 
 
 def cmd_call(a):
-    body = json.loads(Path(a.body).read_text()) if a.body else None
+    body = json.loads(Path(a.body).read_text(encoding="utf-8")) if a.body else None
     out(data(request(a.method.upper(), a.path, body)))
 
 
@@ -525,6 +570,10 @@ def main() -> None:
         (["question"], {}), (["--body"], {"help": "JSON file to PUT"}))
     add("call", cmd_call, "any other route", (["method"], {}), (["path"], {}),
         (["--body"], {}))
+    # Windows pipes default to the machine's code page, which cannot print
+    # Korean: every command's output would fail.
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8")
     a = p.parse_args()
     a.fn(a)
 

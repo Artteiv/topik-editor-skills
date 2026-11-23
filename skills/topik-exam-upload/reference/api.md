@@ -56,7 +56,7 @@ Gốc là `$TOPIK_API_URL`. Mọi route gửi `Authorization: Bearer $TOPIK_API_
 ```
 
 - Trường của nhóm: `instruction`, `example` (〈보기〉), `passageText`, `transcript`, `translation`, `sentenceTranslations`, `glossary`, `imageMediaId`, `patternKey`.
-- Trường của câu: `prompt`, `passageText`, `givenSentence`, `labeledItems` (4 mục), `options` (đủ 4, phương án ảnh giữ `mediaId` cũ), `correctOption` (1–4), `acceptedAnswers`, `modelAnswer`, `charMin`, `charMax`, `explanation`, `translation`, `sentenceTranslations`, `optionTranslations`, `glossary`, `transcript`.
+- Trường của câu: `prompt`, `passageText`, `givenSentence`, `labeledItems` (4 mục), `options` (đủ 4, phương án ảnh giữ `mediaId` cũ), `correctOption` (1–4), `acceptedAnswers`, `modelAnswer`, `charMin`, `charMax`, `explanation`, `translation`, `sentenceTranslations`, `glossary`, `transcript`, `type` (`mcq`, `order`, `insert`), `points`. Bản dịch phương án ở `options[].translation`.
 - Không gửi trường bản dịch hay bảng từ thì giữ nguyên. Gửi rỗng hoặc `null` là xoá: đừng làm (xem `SKILL.md`, mục Không làm).
 - Gạch chân viết `<u>…</u>`. Chỗ trống viết `(   )`.
 - `409 question_has_answers`: đề đã có người làm. Chỉ gặp ở đề đã xuất bản: dừng, báo người dùng.

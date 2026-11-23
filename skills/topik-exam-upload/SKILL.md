@@ -7,7 +7,7 @@ description: Use when asked to upload, import or put a TOPIK practice exam (đ�
 
 Web tự đọc đề PDF bằng Gemini và tự đặt mốc audio. Bạn làm ba việc: đưa đủ file lên, kiểm những chỗ server không tự kiểm được (chữ trong ảnh, gạch chân), rồi xử lý cờ, duyệt nhóm cho tới khi chỉ còn bước xuất bản. **Không chép lại đề và không đọc cả đề**: việc đó tốn hàng triệu token mà vẫn sót lỗi. Chỉ mở trang mà một lệnh hay một cờ chỉ tới. **Xuất bản do người làm**: token API bị từ chối xuất bản, ẩn, xoá đề (`403 api_token_not_allowed`), đừng thử.
 
-**Xong khi** và chỉ khi: `topik flags` không còn cờ mở, mọi nhóm đã duyệt, `topik checklist` hết `error`, trừ `writing_guide_unreviewed` (người duyệt phiếu chấm). Cờ hay nhóm nào bạn không tự xử lý được (cần nghe audio, cần sửa trang nguồn, đáp án sách có vẻ sai) thì vẫn được để lại, nhưng mỗi cái phải có một dòng lý do trong mục "Cần người xem". `read_two_missing` và `missing_slot` cũng được để lại như vậy, nhưng chỉ sau khi đã đọc lại PDF đề một lần theo bước 3. Chưa đạt thì làm tiếp, đừng viết báo cáo. Đề 30 cờ là bình thường: mỗi cờ chỉ cần một ảnh cắt và một quyết định.
+**Xong khi** và chỉ khi (hoặc khi bước 3 bảo dừng hẳn): `topik flags` không còn cờ mở, mọi nhóm đã duyệt, `topik checklist` hết `error`, trừ `writing_guide_unreviewed` (người duyệt phiếu chấm). Cờ hay nhóm nào bạn không tự xử lý được (cần nghe audio, cần sửa trang nguồn, đáp án sách có vẻ sai) thì vẫn được để lại, nhưng mỗi cái phải có một dòng lý do trong mục "Cần người xem". `read_two_missing` và `missing_slot` cũng được để lại như vậy, nhưng chỉ sau khi đã đọc lại PDF đề một lần theo bước 3. Chưa đạt thì làm tiếp, đừng viết báo cáo. Đề 30 cờ là bình thường: mỗi cờ chỉ cần một ảnh cắt và một quyết định.
 
 Mọi lệnh dưới đây là `python3 <skill>/scripts/topik.py …` (gọi tắt `topik`), với `<skill>` là thư mục chứa file này. Chi tiết route và body: [reference/api.md](reference/api.md).
 
@@ -16,7 +16,7 @@ Mọi lệnh dưới đây là `python3 <skill>/scripts/topik.py …` (gọi t�
 1. Cần `TOPIK_API_URL`, `TOPIK_API_TOKEN` trong môi trường. Không in, không ghi token ra file.
 2. `topik whoami` phải ra `"role": "editor"`. Lỗi `401` thì dừng, báo người dùng token sai hoặc hết hạn.
 3. Mọi file bạn tạo để trong thư mục đề, ở thư mục con `.upload/` (ảnh trang, JSON). Không để ở `/tmp`.
-4. `export TOPIK_UPLOAD_LOG=<thư mục đề>/upload-log.md`: script tự ghi mỗi lệnh ghi dữ liệu vào đó.
+4. Chạy mọi lệnh `topik` khi đang đứng ở thư mục đề (`cd <thư mục đề> && topik …`). Khi đó script tự ghi mỗi lệnh ghi dữ liệu và lý do đóng cờ vào `upload-log.md` của thư mục đó (file tạo ở bước 2).
 
 ## 1. Kiểm tài nguyên trước khi tải
 
@@ -61,6 +61,8 @@ Lệnh: `topik import <exam> --booklet <id đề PDF>` rồi `topik job <exam> -
 
 Đọc lại rồi mà vẫn còn dấu hiệu thì **không đọc lần thứ ba**. Ghi vào "Cần người xem": lần đọc nào lỗi và mã lỗi, câu trống số mấy, ở khoảng trang nào (câu trống không có trang: lấy trang của câu trước và sau nó, `topik text <exam> --numbers 36-38`). Rồi làm tiếp từ bước gửi file đáp án. Không tự tạo câu cho chỗ trống, không chép câu từ trang vào chỗ trống.
 
+Gửi file đáp án mà bị `409 booklet_required` (không lần đọc PDF đề nào thành công) thì **dừng hẳn**: không làm tiếp các bước sau, viết báo cáo ngay, ghi lý do và id các job vào "Cần người xem".
+
 ## 4. Kiểm chữ trong ảnh, gạch chân và cờ OCR
 
 `topik checks <exam>` liệt kê ba thứ, kèm số trang. Chỉ lưu và xem đúng các trang đó: `topik pages <id đề PDF> --first N --last N --out <đề>/.upload/pages`.
@@ -102,7 +104,7 @@ Chỗ sai chữ khác chỉ sửa khi gặp lúc đang xem trang vì một lý d
 
 ## 7. Nội dung còn thiếu: hỏi trước khi tự viết
 
-Sau bước 3, xem câu nào còn thiếu lời giải, bản dịch, bài mẫu Viết, chữ trong ảnh không chép được. Nếu còn thiếu thứ bạn tự viết được, **hỏi người dùng một lần**: bạn tự viết, hay họ chuẩn bị tài liệu. Họ đã trả lời trong yêu cầu thì làm theo, không hỏi lại. Nội dung tự viết không gắn nhãn gì. Chỉ ghi số câu và trường vào nhật ký mục "Tự quyết".
+Sau bước 3, xem câu nào còn thiếu lời giải, bản dịch, bài mẫu Viết, chữ trong ảnh không chép được. Nếu còn thiếu thứ bạn tự viết được, **hỏi người dùng một lần**: bạn tự viết, hay họ chuẩn bị tài liệu. Họ đã trả lời trong yêu cầu thì làm theo, không hỏi lại. Họ dặn không trả lời được trong lúc bạn làm, hay không trả lời: không tự viết, ghi số câu và trường còn thiếu vào "Cần người xem", làm tiếp. Nội dung tự viết không gắn nhãn gì. Chỉ ghi số câu và trường vào nhật ký mục "Tự quyết".
 
 ## 8. Phiếu chấm câu Viết 53, 54
 
@@ -121,7 +123,7 @@ Tối đa 10 mục mỗi danh sách, mỗi mục tối đa 500 ký tự.
 ## 9. Duyệt nhóm và kiểm cuối
 
 1. Nhóm nào không còn cờ mở: `topik confirm <exam> <group>`. Lỗi trả về (`errors`) thì sửa rồi duyệt lại.
-2. `topik audio-marks <exam>`: đơn vị nào `status` "cần nghe" thì ghi vào báo cáo. Bạn không nghe được audio, đừng tự sửa mốc.
+2. `topik audio-marks <exam>`: đơn vị nào `startMs` là `null`, hoặc `status` là `auto` mà `reasons` không rỗng, thì ghi vào báo cáo. Bạn không nghe được audio, đừng tự sửa mốc.
 3. `topik checklist <exam>`: mọi `error` phải hết, trừ `writing_guide_unreviewed`, và trừ `read_two_missing`, `missing_slot` khi đã đọc lại theo bước 3 và đã ghi "Cần người xem". `warning` còn lại thì ghi vào báo cáo.
 
 ## 10. Báo cáo cho người dùng
@@ -142,7 +144,7 @@ Viết tiếng Việt, ngắn, theo thứ tự:
 - Không sửa nội dung khi chưa xem ảnh trang tương ứng.
 - Không đổi đáp án mà bảng đáp án in không nói vậy.
 - Không chép nội dung đề vào log hay báo cáo (có bản quyền). Ghi số câu, id.
-- Không xoá bảng từ (`glossary`), bản dịch theo câu (`sentenceTranslations`), bản dịch phương án (`optionTranslations`), bản dịch (`translation`): không gửi các trường này rỗng hay `null` trong `save-group`. Nghi là máy tự sinh, sách không in thì để nguyên, ghi "Cần người xem".
+- Không xoá bảng từ (`glossary`), bản dịch theo câu (`sentenceTranslations`), bản dịch phương án (`options[].translation`), bản dịch (`translation`): không gửi các trường này rỗng hay `null` trong `save-group`. Nghi là máy tự sinh, sách không in thì để nguyên, ghi "Cần người xem".
 
 ## Dấu hiệu đang làm sai
 
