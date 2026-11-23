@@ -11,7 +11,8 @@ Web tự đọc đề PDF bằng Gemini và tự đặt mốc audio. Bạn làm 
 
 Được để lại, mỗi thứ một dòng lý do trong mục "Cần người xem":
 - Cờ bạn không tự xử lý được (cần nghe audio, cần sửa trang nguồn, đáp án sách có vẻ sai, `ocr_unavailable`, `structure_changed` nhóm in khác khung). Nhóm có cờ đó thì chưa duyệt được, nên checklist kéo theo `open_flags`, `unconfirmed_group`, `draft_question` **của đúng nhóm đó**: các mục này cũng được để lại.
-- `read_two_missing`, `missing_slot`, chỉ sau khi đã đọc lại PDF đề một lần theo bước 3. Còn `missing_slot` thì `points_total` (tổng điểm lệch) của phần thi đó cũng được để lại.
+- Nhóm không có cờ mà `confirm` trả `errors` bạn không tự sửa được (cần nội dung sách không có, cần nghe audio): `unconfirmed_group`, `draft_question` của nhóm đó. Ghi lỗi `confirm` trả về.
+- `read_two_missing`, `missing_slot`, chỉ sau khi đã đọc lại PDF đề một lần theo bước 3. `points_total` (tổng điểm lệch) của phần thi có câu trống cũng được để lại, nếu số điểm thiếu đúng bằng điểm thể thức của các câu trống; lệch khác thì sửa điểm.
 - `writing_guide_unreviewed`: luôn còn, người duyệt phiếu chấm.
 
 Mục `error` nào không ứng với một dòng "Cần người xem" như trên thì chưa xong. Chưa đạt thì làm tiếp, đừng viết báo cáo. Đề 30 cờ là bình thường: mỗi cờ chỉ cần một ảnh cắt và một quyết định.
@@ -111,7 +112,7 @@ Chỗ sai chữ khác chỉ sửa khi gặp lúc đang xem trang vì một lý d
 
 ## 7. Nội dung còn thiếu: không hỏi giữa chừng
 
-Sau bước 3, xem câu nào còn thiếu lời giải, bản dịch, bài mẫu Viết, chữ trong ảnh không chép được. Yêu cầu của người dùng nói bạn được tự viết thì tự viết. Yêu cầu không nói gì thì **đừng hỏi giữa chừng** (hỏi là dừng việc): không tự viết, ghi số câu và trường còn thiếu vào "Cần người xem", làm tiếp, rồi hỏi trong báo cáo: bạn tự viết hay họ chuẩn bị tài liệu. Nội dung tự viết không gắn nhãn gì. Chỉ ghi số câu và trường vào nhật ký mục "Tự quyết".
+Sau bước 3, xem câu nào còn thiếu lời giải, bản dịch, bài mẫu Viết, chữ trong ảnh không chép được. Yêu cầu của người dùng nói rõ bạn được tự viết nội dung còn thiếu thì tự viết. Câu chung như "tự quyết", "làm tới khi xong" không tính là cho phép. Yêu cầu không nói gì thì **đừng hỏi giữa chừng** (hỏi là dừng việc): không tự viết, ghi số câu và trường còn thiếu vào "Cần người xem", làm tiếp, rồi hỏi trong báo cáo: bạn tự viết hay họ chuẩn bị tài liệu. Nội dung tự viết không gắn nhãn gì. Chỉ ghi số câu và trường vào nhật ký mục "Tự quyết".
 
 ## 8. Phiếu chấm câu Viết 53, 54
 
@@ -139,7 +140,7 @@ Chỉ viết khi đã đạt điều kiện **Xong khi** ở đầu file. Chạy
 
 Viết tiếng Việt, ngắn, theo thứ tự:
 
-1. Id và tên đề, trạng thái: bản nháp, chờ người xuất bản. Còn `error` chặn xuất bản (`read_two_missing`, `missing_slot`) thì ghi "còn chặn xuất bản" và mã.
+1. Id và tên đề, trạng thái: bản nháp, chờ người xuất bản. Còn `error` nào khác `writing_guide_unreviewed` thì ghi "còn chặn xuất bản" và liệt kê mọi mã, kèm câu hay nhóm.
 2. **Còn thiếu hoặc cần người xem**: việc gì, câu nào, vì sao. Luôn có dòng phiếu chấm câu 53, 54.
 3. **Tự quyết**: liệt kê số câu theo từng loại (sửa chữ so với bản web, lỗi in đã sửa, cờ đã đóng, nội dung tự viết). Không kể lại nội dung.
 4. Đường dẫn `upload-log.md`.
