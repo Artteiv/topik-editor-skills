@@ -9,7 +9,7 @@ Gốc là `$TOPIK_API_URL`. Mọi route gửi `Authorization: Bearer $TOPIK_API_
 | Kiểm token | `GET /v1/auth/me` | `whoami` |
 | Tìm đề | `GET /v1/admin/exams?q=` | `find-exam` |
 | Tạo đề | `POST /v1/admin/exams` `{title, type}` | `create-exam` |
-| Tải file (pdf ≤ 50 MB, mp3 ≤ 200 MB, ảnh ≤ 5 MB) | `POST /v1/media` multipart `file` | `upload` |
+| Tải file (pdf ≤ 50 MB, mp3 ≤ 200 MB, ảnh ≤ 5 MB) | `POST /v1/media/uploads` `{fileName, size}` → `PUT` file lên `url` (không gửi token) → `POST /v1/media/uploads/{uploadId}/complete` `{fileName}` | `upload` |
 | Gửi file cho web đọc | `POST /v1/admin/exams/{id}/imports` `{files: [{role, mediaId}]}` | `import` |
 | Trạng thái lần nhập | `GET /v1/admin/exams/{id}/imports/latest` | `job` |
 | Gắn audio Nghe | `PUT /v1/admin/exams/{id}/sections/{sectionId}/audio` `{audioMediaId}` | `set-audio` |
