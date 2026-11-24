@@ -1,6 +1,6 @@
 # Mẫu `upload-log.md`
 
-Đặt ở thư mục đề. Bạn viết các mục dưới đây. Script nối thêm dòng `` - <giờ> `METHOD path` → status `` mỗi lần ghi dữ liệu (khi đã đặt `TOPIK_UPLOAD_LOG`). Không chép nội dung đề vào đây.
+Đặt ở thư mục đề. Bạn viết các mục dưới đây. Script nối thêm dòng `` - <giờ> `METHOD path` → status `` mỗi lần ghi dữ liệu (khi lệnh chạy ở thư mục đề, hoặc đã đặt `TOPIK_UPLOAD_LOG`). Không chép nội dung đề vào đây.
 
 ~~~markdown
 # Tải đề: HOT TOPIK ĐỎ 2020 – Đề 01

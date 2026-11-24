@@ -38,7 +38,7 @@ Cần Python 3.10 trở lên. Script chỉ dùng thư viện chuẩn.
 network_access = true
 ```
 
-Codex đọc skill ở `~/.agents/skills`. Kiểm đã nhận skill và biến: hỏi Codex "chạy `python3 ~/.agents/skills/topik-exam-upload/scripts/topik.py whoami`", phải ra `"role": "editor"`.
+Sandbox của Codex chỉ cho ghi file trong thư mục đang làm việc, nên **mở Codex ở thư mục đề** (ảnh trang, `upload-log.md` nằm ở đó). Codex đọc skill ở `~/.agents/skills`. Lệnh của skill tự đọc `~/.config/topik/agent.env` nếu Codex không nạp biến môi trường. Kiểm đã nhận skill và biến: hỏi Codex "chạy `python3 ~/.agents/skills/topik-exam-upload/scripts/topik.py whoami`", phải ra `"role": "editor"`.
 
 ## Cấu hình
 
@@ -53,7 +53,7 @@ Token không xuất bản, ẩn hay xoá được đề.
 
 ## Dùng
 
-Nói với agent, ví dụ: "Tải đề trong thư mục `~/Đề/hot-topik-2020/test-02` lên web, đây là HOT TOPIK đỏ 2020 Đề 02". Agent ghi mọi việc đã làm vào `upload-log.md` trong thư mục đề, rồi báo còn thiếu gì và đã tự quyết gì.
+Nói với agent, ví dụ: "Tải đề trong thư mục `~/Đề/hot-topik-2020/test-02` lên web, đây là HOT TOPIK đỏ 2020 Đề 02. Thiếu lời giải hay bản dịch thì tự viết. Tôi không trả lời được trong lúc bạn làm". Agent ghi mọi việc đã làm vào `upload-log.md` trong thư mục đề, rồi báo còn thiếu gì và đã tự quyết gì.
 
 ## Thư mục
 
