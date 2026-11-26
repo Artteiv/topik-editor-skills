@@ -69,6 +69,10 @@ Lệnh: `topik import <exam> --booklet <id đề PDF>` rồi `topik job <exam> -
 
 Đọc lại rồi mà vẫn còn dấu hiệu thì **không đọc lần thứ ba**. Ghi vào "Cần người xem": lần đọc nào lỗi và mã lỗi, câu trống số mấy, ở khoảng trang nào (câu trống không có trang: lấy trang của câu trước và sau nó, `topik text <exam> --area 읽기 --numbers 36-38`). Rồi làm tiếp từ bước gửi file đáp án. Không tự tạo câu cho chỗ trống, không chép câu từ trang vào chỗ trống.
 
+**File đáp án** (job gửi `--solution`) có `status` khác `succeeded`: gửi lại đúng file đó một lần, không đổi vai trò. Vẫn lỗi thì ghi vào "Cần người xem": id job, `error`, file nào. Rồi làm tiếp các bước còn lại, trừ phần cần đáp án: nhóm có câu chưa có đáp án thì `confirm` không qua, để lại kèm lý do. **Không tự chép đáp án, lời thoại, bài mẫu từ ảnh trang** để thay file đáp án.
+
+`report.ocrPages` không rỗng: các trang đó web đọc bằng OCR vì Gemini từ chối (bản quyền), không có bản dịch. Xem ảnh các trang đó và đối chiếu đáp án 51–52, bài mẫu 53–54, lời thoại của câu trên trang (`topik text --numbers`). Sửa bằng `save-group` nếu thiếu chữ, ghi nhật ký.
+
 Gửi file đáp án mà bị `409 booklet_required` (không lần đọc PDF đề nào thành công) thì **dừng hẳn**: không làm tiếp các bước sau, viết báo cáo ngay, ghi lý do và id các job vào "Cần người xem".
 
 ## 4. Kiểm chữ trong ảnh, gạch chân và cờ OCR
