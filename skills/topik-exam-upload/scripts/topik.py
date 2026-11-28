@@ -19,7 +19,6 @@ from __future__ import annotations  # str | None on the Python 3.9 of macOS
 import argparse
 import datetime as dt
 import json
-import mimetypes
 import os
 import re
 import shutil
@@ -28,7 +27,6 @@ import sys
 import time
 import urllib.error
 import urllib.request
-import uuid
 from pathlib import Path
 
 # Page share (of 1000) kept around a crop box: about one line above and below.
@@ -223,14 +221,30 @@ def cmd_create_exam(a):
 
 
 def cmd_upload(a):
+    """Start, PUT the file to the signed storage URL, complete: as the web does."""
     path = Path(a.file)
-    boundary = uuid.uuid4().hex
-    mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
-    body = (f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; "
-            f"filename=\"{path.name}\"\r\nContent-Type: {mime}\r\n\r\n"
-            ).encode() + path.read_bytes() + f"\r\n--{boundary}--\r\n".encode()
-    m = data(request("POST", "/v1/media", raw=body,
-                     content_type=f"multipart/form-data; boundary={boundary}"))
+    size = path.stat().st_size
+    start = data(request("POST", "/v1/media/uploads",
+                         {"fileName": path.name, "size": size}))
+    # Sent outside request(): the signed URL is a credential, kept out of the
+    # upload log and of error output. Streamed, so a 200 MB mp3 stays on disk.
+    with path.open("rb") as f:
+        put = urllib.request.Request(
+            start["url"], data=f, method="PUT",
+            headers={"Content-Length": str(size),
+                     "Content-Type": "application/octet-stream"})
+        try:
+            with urllib.request.urlopen(put, timeout=600) as r:
+                status = r.status
+        except urllib.error.HTTPError as e:
+            status = e.code
+        except urllib.error.URLError as e:
+            sys.exit(f"PUT {path.name} to storage: {e.reason}")
+    log_write("PUT", f"storage upload {start['uploadId']}", status)
+    if status >= 300:
+        sys.exit(f"PUT {path.name} to storage -> {status}")
+    m = data(request("POST", f"/v1/media/uploads/{start['uploadId']}/complete",
+                     {"fileName": path.name}))
     out({"id": m["id"], "kind": m["kind"], "originalName": m["originalName"],
          "size": m.get("size")})
 
